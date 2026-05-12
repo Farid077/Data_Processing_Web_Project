@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console — @ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <aside>
+        <div class="logo">
+            <div class="logo-mark">A</div>
+            <h1>Admin Console</h1>
+        </div>
+        <nav>
+            <div class="nav-label">Main</div>
+            <a asp-action="Index" asp-controller="Home"
+               class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
+                <span class="icon">▦</span> Dashboard
+            </a>
+            <a asp-action="Index" asp-controller="Users"
+               class="@(ViewData["ActivePage"]?.ToString() == "Users" ? "active" : "")">
+                <span class="icon">◈</span> Users
+            </a>
+            <a asp-action="Index" asp-controller="Roles"
+               class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")">
+                <span class="icon">◫</span> Roles
+            </a>
+            <a asp-action="Index" asp-controller="Departments"
+                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")">
+                <span class="icon">◫</span> Departments
+            </a>
+            <a asp-action="Index" asp-controller="Issues"
+               class="@(ViewData["ActivePage"]?.ToString() == "Issues" ? "active" : "")">
+                <span class="icon">◫</span> Issues
+            </a>
+            <a asp-action="Index" asp-controller="IssueCategories"
+               class="@(ViewData["ActivePage"]?.ToString() == "IssueCategories" ? "active" : "")">
+                <span class="icon">◫</span> Issue Categories
+            </a>
+            <a asp-action="Index" asp-controller="Urgencies"
+               class="@(ViewData["ActivePage"]?.ToString() == "Urgencies" ? "active" : "")">
+                <span class="icon">◫</span> Urgencies
+            </a>
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit">
+                    <span class="icon">◉</span> Logout
+                </button>
+            </form>
+        </nav>
+    </aside>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

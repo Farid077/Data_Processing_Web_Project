@@ -1,0 +1,79 @@
+@model List<RoleManagementVM>
+
+@{
+    ViewData["Title"] = "Roles";
+    ViewData["ActivePage"] = "Roles";
+}
+
+<div class="topbar">
+    <div class="page-title">Roles</div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="--accent-color: var(--accent)">
+        <div class="stat-icon">◈</div>
+        <div class="stat-label">Total Roles</div>
+        <div class="stat-value">@Model.Count()</div>
+    </div>
+</div>
+
+<div class="section-header">
+    <div class="section-title">Role Management</div>
+    <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New Role</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Role</th>
+                <th>Department</th>
+                <th>Page - Access</th>
+                <th>Users</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="cell-user">
+                            <div>
+                                <div class="cell-name">@role.Name</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="cell-name">@role.Department</div>
+                    </td>
+                    <td>
+                        @foreach (var perm in role.Permissions)
+                        {
+                            foreach (var dict in perm)
+                            {
+                                <div class="role-tag">@dict.Key - @dict.Value</div>
+                            }
+                        }
+                    </td>
+                    <td>
+                        @foreach (string username in role.Users)
+                        {
+                            <div>@username</div>
+                        }
+                    </td>
+                    <td style="display:flex;">
+                        @if (role.Name != "SuperAdmin")
+                        {
+                            <a asp-action="Update" asp-route-id="@role.Name" class="action-btn edit" style="text-decoration:none;">Edit</a>
+                            <form method="POST" asp-controller="Roles" asp-action="Delete" asp-route-id="@role.Name">
+                                @Html.AntiForgeryToken()
+                                <button class="action-btn del" type="submit">Delete</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

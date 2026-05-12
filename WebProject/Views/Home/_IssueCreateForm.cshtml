@@ -1,0 +1,46 @@
+﻿@model IssueCreateVM
+
+<form method="post" asp-action="Create" class="form-panel-body" asp-controller="Issues">
+    @Html.AntiForgeryToken()
+
+    <div class="form-row single">
+        <div class="field">
+            <label asp-for="Category">Category</label>
+            <select asp-for="Category" name="Category" id="categorySelect">
+                <option value="">Select category...</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option selected="@(category == Model.Category ? category : null)" value="@category">@category</option>
+                }
+            </select>
+            <span asp-validation-for="Category" class="err-msg"></span>
+        </div>
+    </div>
+
+    <div class="form-row single">
+        <div class="field">
+            <label asp-for="SubCategory">Sub Category</label>
+            <select asp-for="SubCategory" name="SubCategory" id="subCategorySelect">
+                <option value="">Select sub category...</option>
+                @foreach (var subcategory in Model.SubCategories)
+                {
+                    <option selected="@(subcategory == Model.SubCategory ? subcategory : null)" value="@subcategory">@subcategory</option>
+                }
+            </select>
+            <span asp-validation-for="SubCategory" class="err-msg"></span>
+        </div>
+    </div>
+
+    <div class="field">
+        <label asp-for="Note">Note</label>
+        <textarea asp-for="Note" name="Note" placeholder="Describe the issue in detail..."></textarea>
+        <span asp-validation-for="Note" class="err-msg"></span>
+    </div>
+
+    <div class="form-divider"></div>
+
+    <div class="form-panel-footer" style="padding: 0; border: none; margin-top: 4px;">
+        <button type="submit" class="btn-submit-issue">Create Issue</button>
+        <button type="reset" class="btn-reset-issue" onclick="resetPriority()">Clear</button>
+    </div>
+</form>

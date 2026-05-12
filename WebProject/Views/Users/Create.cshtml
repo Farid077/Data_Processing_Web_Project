@@ -1,0 +1,89 @@
+@model UserCreateVM
+
+@{
+    ViewData["Title"] = "Add User";
+    ViewData["ActivePage"] = "Users";
+}
+
+<div class="topbar">
+    <div class="breadcrumb">
+        <a asp-action="Index" asp-controller="Home">Dashboard</a>
+        <span class="sep">/</span>
+        <a asp-action="Index">Users</a>
+        <span class="sep">/</span>
+        <span class="current">Add User</span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-icon">◈</div>
+        <div>
+            <div class="card-title">Add New User</div>
+            <div class="card-sub">Fill in the details to create a new user.</div>
+        </div>
+    </div>
+
+    <form method="post" asp-action="Create" class="form-body">
+        @Html.AntiForgeryToken()
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="Username">Username</label>
+                <input asp-for="Username" type="text" name="Username" placeholder="e.g. Maria">
+                <span asp-validation-for="Username" class="err-msg"></span>
+            </div>
+        </div>
+
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="Role">Role</label>
+                <select asp-for="Role" id="role">
+                    <option value="">Select role...</option>
+                    @foreach (var role in Model.RoleOptions)
+                    {
+                        <option selected="@(role == Model.Role ? role : null)" value="@role">@role</option>
+                    }
+                </select>
+                <span asp-validation-for="Role" class="err-msg"></span>
+            </div>
+        </div>
+
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="Password">Password</label>
+                <input asp-for="Password" name="Password" type="password" id="password" placeholder="Min. 8 characters">
+                <span class="input-icon toggle-pw" id="pw-toggle" onclick="togglePw()">◷ show password</span>
+                <span asp-validation-for="Password" class="err-msg"></span>
+            </div>
+        </div>
+
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="ConfirmPassword">Confirm Password</label>
+                <input asp-for="ConfirmPassword" name="ConfirmPassword" type="password" id="confirmpassword" placeholder="Confirm password">
+                <span class="input-icon toggle-pw" id="pw-toggle-confirm" onclick="togglePwConfirm()">◷ show password</span>
+                <span asp-validation-for="ConfirmPassword" class="err-msg"></span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-save">Create User</button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePw() {
+            const input = document.getElementById('password');
+            const icon  = document.getElementById('pw-toggle');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.textContent = input.type === 'password' ? '◷ show password' : '◉ hide password';
+        }
+
+        function togglePwConfirm() {
+            const input = document.getElementById('confirmpassword');
+            const icon  = document.getElementById('pw-toggle-confirm');
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.textContent = input.type === 'password' ? '◷ show password' : '◉ hide password';
+        }
+    </script>
+}

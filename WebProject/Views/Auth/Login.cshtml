@@ -1,0 +1,54 @@
+@model UserLoginVM
+
+@{
+    Layout = "_LoginLayout";
+    ViewData["Title"] = "Login";
+}
+
+<div class="wrapper">
+    <div class="panel-right">
+        <div class="form-head">
+            <h3>Welcome</h3>
+            <p>Sign in to your admin account</p>
+        </div>
+
+        <form method="post" asp-action="Login" asp-controller="Auth">
+            <div class="field">
+                <div asp-validation-summary="All" class="error-msg"></div>
+            </div>
+
+            <div class="field">
+                <label asp-for="Username">Username</label>
+                <div class="input-wrap">
+                    <input asp-for="Username" type="text" placeholder="admin" autocomplete="username" name="Username">
+                </div>
+            </div>
+
+            <div class="field">
+                <label asp-for="Password">Password</label>
+                <div class="input-wrap">
+                    <input asp-for="Password" type="password" id="password" placeholder="••••••••••" autocomplete="current-password" name="Password">
+                    <span class="input-icon toggle-pw" id="pw-toggle" onclick="togglePw()">◷</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePw() {
+            const input = document.getElementById('password');
+            const icon  = document.getElementById('pw-toggle');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = '◉';
+            } else {
+                input.type = 'password';
+                icon.textContent = '◷';
+            }
+        }
+    </script>
+}

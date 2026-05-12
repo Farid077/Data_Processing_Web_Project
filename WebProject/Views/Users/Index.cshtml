@@ -1,0 +1,119 @@
+@model List<UserManagementVM>
+
+@{
+    ViewData["Title"] = "Users";
+    ViewData["ActivePage"] = "Users";
+}
+
+<!-- ── DELETE CONFIRMATION OVERLAY ── -->
+<div class="overlay" id="deleteOverlay" onclick="closeDelete(event)">
+    <div class="dialog">
+        <div class="dialog-icon">⚠</div>
+        <h3>Delete this user?</h3>
+        <p>This will permanently remove <strong id="deleteTargetName"></strong> from the system. This action cannot be undone.</p>
+        <div class="dialog-btns">
+            <button class="btn-cancel" onclick="closeDelete()">Cancel</button>
+            <form id="deleteForm" method="POST">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-confirm-delete">Yes, Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="topbar">
+    <div class="page-title">Users</div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card" style="--accent-color: var(--accent)">
+        <div class="stat-icon">◈</div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">@Model.Count()</div>
+    </div>
+</div>
+
+<div class="section-header">
+    <div class="section-title">User Management</div>
+    <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New User</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>
+                        <div class="cell-user">
+                            <div class="mini-avatar" style="background:rgba(200,255,62,.15);color:var(--accent)">
+                                @user.Username.ToUpper()[0]@user.Username.ToUpper()[1]
+                            </div>
+                            <div>
+                                <div class="cell-name">@user.Username</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="role-tag">@user.Role</span></td>
+                    <td>
+                        @if (user.IsActive)
+                        {
+                            <span class="status-pill s-active">Active</span>
+                        }
+                        else
+                        {
+                            <span class="status-pill s-inactive">Inactive</span>
+                        }
+                    </td>
+                    <td>@user.CreatedTime</td>
+                    <td style="display:flex;">
+                        @if (user.Role != "SuperAdmin")
+                        {
+                            <a asp-action="Update" asp-route-id="@user.Username" class="action-btn edit" style="text-decoration:none;">Edit</a>
+                            <form method="POST" class="action">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@user.Username" />
+                                <button class="action-btn del" type="button" onclick="openDelete('@user.Username', 'Users/Delete/@user.Username')">
+                                    Delete
+                                </button>
+                                @if (user.IsActive)
+                                {
+                                    <button class="action-btn revoke" type="submit" formaction="Users/RevokeSession/@user.Username">End Session</button>
+                                }
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        function openDelete(name, action) {
+            document.getElementById('deleteTargetName').textContent = name;
+            document.getElementById('deleteForm').action = action;
+            document.getElementById('deleteOverlay').classList.add('show');
+        }
+
+        function closeDelete(e) {
+            if (!e || e.target === document.getElementById('deleteOverlay')) {
+                document.getElementById('deleteOverlay').classList.remove('show');
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeDelete();
+        });
+    </script>
+}

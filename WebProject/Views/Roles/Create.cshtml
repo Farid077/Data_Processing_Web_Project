@@ -1,0 +1,88 @@
+@model RoleCreateVM
+
+@{
+    ViewData["Title"] = "Add Role";
+    ViewData["ActivePage"] = "Roles";
+}
+
+<div class="topbar">
+    <div class="breadcrumb">
+        <a asp-action="Index" asp-controller="Home">Dashboard</a>
+        <span class="sep">/</span>
+        <a asp-action="Index">Roles</a>
+        <span class="sep">/</span>
+        <span class="current">Add Role</span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="card-icon">◈</div>
+        <div>
+            <div class="card-title">Add New Role</div>
+            <div class="card-sub">Fill in the details to create a new role.</div>
+        </div>
+    </div>
+
+    <form method="post" asp-action="Create" class="form-body">
+        @Html.AntiForgeryToken()
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="RoleName">Role Name</label>
+                <input asp-for="RoleName" type="text" name="RoleName" placeholder="Admin">
+                <span asp-validation-for="RoleName" class="err-msg"></span>
+            </div>
+        </div>
+
+        <div class="form-row single">
+            <div class="field">
+                <label asp-for="Department">Department</label>
+                <select asp-for="Department" name="Department">
+                    <option value="">Select Department...</option>
+                    @foreach (var department in Model.DepartmentOptions)
+                    {
+                            <option selected="@(Model.Department == department ? "selected" : null)" value="@department">@department</option>
+                    }
+                </select>
+                <span asp-validation-for="Department" class="err-msg"></span>
+            </div>
+        </div>
+
+        <div id="pairsContainer">
+            @for (int i = 0; i < Model.Permissions.Count; i++)
+            {
+                <div class="pair-row">
+                    <div class="field">
+                        <label>Page</label>
+                        <select name="Permissions[@i].Page">
+                            <option value="">Select page...</option>
+                            @foreach (var p in Model.PageOptions)
+                            {
+                                <option selected="@(Model.Permissions[i].Page == p ? "selected" : null)" value="@p">@p</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Accessibility</label>
+                        <select name="Permissions[@i].Access">
+                            <option value="">Select access...</option>
+                            @foreach (var access in Model.AccessOptions)
+                            {
+                                <option selected="@(Model.Permissions[i].Access == access ? "selected" : null)" value="@access">@access</option>
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn-remove" formaction="/Roles/RemovePair?index=@i">✕</button>
+                    <span asp-validation-for="Permissions[i].Page" class="err-msg"></span>
+                    <span asp-validation-for="Permissions[i].Access" class="err-msg"></span>
+                </div>
+            }
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-add" formaction="/Roles/AddPair">+ Add Pair</button>
+        </div>
+
+        <button type="submit" class="btn-save">Create Role</button>
+    </form>
+</div>
