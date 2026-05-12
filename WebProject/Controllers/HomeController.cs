@@ -16,36 +16,10 @@ public class HomeController : Controller
     //[AuthorizePermission((int)Pages.Dashboard, (int)PageAccess.Read)]
     public async Task<IActionResult> Index()
     {
-        //HomePageVM data = new()
-        //{
-        //    Issues = await _context.Issues
-        //    .AsNoTracking()
-        //    .Where(i => !i.IsDeleted)
-        //    .Select(i => new IssueCardVM
-        //    {
-        //        Id = i.Id,
-        //        Category = i.Category,
-        //        SubCategory = i.SubCategory,
-        //        Description = i.Description,
-        //        Status = i.Status,
-        //        Urgency = i.Urgency != null ? i.Urgency.Name : "",
-        //        ReportedTime = i.CreatedTime,
-        //        ReporterName = i.ReporterId!,
-        //        AssigneeName = i.AssigneeId ?? "",
-        //    })
-        //    .ToListAsync(ct),
-        //    IssueCreateForm = new()
-        //    {
-        //        Urgencies = await _context.Urgencies.AsNoTracking().Select(u => u.Name).ToListAsync(ct),
-
-        //        Categories = await _context.IssueCategories
-        //        .AsNoTracking()
-        //        .Select(x => new { x.Name, x.SubCategories }).ToDictionaryAsync(y => y.Name, y => y.SubCategories, ct)
-        //    }
-        //};
-
         return View();
     }
+
+    public IActionResult Products() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error(string errorMessage = "Error!")

@@ -1,7 +1,10 @@
 ﻿namespace WebProject.ViewModels;
 
-public class HomePageVM
+public class Product
 {
-    public List<IssueCardVM> Issues { get; set; } = [];
-    public IssueCreateVM IssueCreateForm { get; set; }
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public int Stock { get; set; }
 }

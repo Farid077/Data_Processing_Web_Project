@@ -1,6 +1,6 @@
 ﻿namespace WebProject.Models;
 
-public enum IssueStatuses
+public enum Statuses
 {
     Pending = 0,
     Done = 1,

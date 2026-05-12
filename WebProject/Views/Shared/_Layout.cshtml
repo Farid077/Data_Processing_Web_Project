@@ -37,13 +37,9 @@
                class="@(ViewData["ActivePage"]?.ToString() == "Issues" ? "active" : "")">
                 <span class="icon">◫</span> Issues
             </a>
-            <a asp-action="Index" asp-controller="IssueCategories"
-               class="@(ViewData["ActivePage"]?.ToString() == "IssueCategories" ? "active" : "")">
-                <span class="icon">◫</span> Issue Categories
-            </a>
-            <a asp-action="Index" asp-controller="Urgencies"
-               class="@(ViewData["ActivePage"]?.ToString() == "Urgencies" ? "active" : "")">
-                <span class="icon">◫</span> Urgencies
+            <a asp-action="Products" asp-controller="Home"
+               class="@(ViewData["ActivePage"]?.ToString() == "Products" ? "active" : "")">
+                <span class="icon">◫</span> Products
             </a>
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
