@@ -608,7 +608,6 @@ C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\scopedcss\bundle\WebProject.styles.css
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\fca6j75913-{0}-lljwq3amqk-lljwq3amqk.gz
-C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\w5vimncr91-{0}-zn0pw3o6uy-zn0pw3o6uy.gz
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\kkxofi4ml1-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\illetp7ru2-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\0lu582hysl-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -680,3 +679,4 @@ C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\WebProject.pdb
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\WebProject.genruntimeconfig.cache
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\ref\WebProject.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\w5vimncr91-{0}-k0fbfebu3t-k0fbfebu3t.gz

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,51 +10,101 @@
 </head>
 <body>
 
-    <aside>
+    <aside id="sidebar">
         <div class="logo">
             <div class="logo-mark">A</div>
-            <h1>Admin Console</h1>
+            <h1 class="logo-text">Admin Console</h1>
         </div>
         <nav>
-            <div class="nav-label">Main</div>
+            <div class="nav-label nav-label-text">Main</div>
             <a asp-action="Index" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")">
-                <span class="icon">▦</span> Dashboard
+               class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" title="Dashboard">
+                <span class="icon">▦</span> <span class="nav-text">Dashboard</span>
             </a>
             <a asp-action="Index" asp-controller="Users"
-               class="@(ViewData["ActivePage"]?.ToString() == "Users" ? "active" : "")">
-                <span class="icon">◈</span> Users
+               class="@(ViewData["ActivePage"]?.ToString() == "Users" ? "active" : "")" title="Users">
+                <span class="icon">◈</span> <span class="nav-text">Users</span>
             </a>
             <a asp-action="Index" asp-controller="Roles"
-               class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")">
-                <span class="icon">◫</span> Roles
+               class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")" title="Roles">
+                <span class="icon">◫</span> <span class="nav-text">Roles</span>
             </a>
             <a asp-action="Index" asp-controller="Departments"
-                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")">
-                <span class="icon">◫</span> Departments
+               class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">
+                <span class="icon">◫</span> <span class="nav-text">Departments</span>
             </a>
             <a asp-action="Index" asp-controller="Issues"
-               class="@(ViewData["ActivePage"]?.ToString() == "Issues" ? "active" : "")">
-                <span class="icon">◫</span> Issues
+               class="@(ViewData["ActivePage"]?.ToString() == "Issues" ? "active" : "")" title="Issues">
+                <span class="icon">◫</span> <span class="nav-text">Issues</span>
             </a>
             <a asp-action="Products" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "Products" ? "active" : "")">
-                <span class="icon">◫</span> Products
+               class="@(ViewData["ActivePage"]?.ToString() == "Products" ? "active" : "")" title="Products">
+                <span class="icon">◫</span> <span class="nav-text">Products</span>
+            </a>
+            <a asp-action="DepotData" asp-controller="Home"
+               class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depot Data</span>
             </a>
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
-                <button type="submit">
-                    <span class="icon">◉</span> Logout
+                <button type="submit" title="Logout">
+                    <span class="icon">◉</span> <span class="nav-text">Logout</span>
                 </button>
             </form>
         </nav>
+
+        <!-- Theme toggle -->
+        <button class="sidebar-theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark theme">
+            <span id="theme-icon">☀</span> <span class="nav-text" id="theme-label">Light mode</span>
+        </button>
+
+        <!-- Collapse toggle -->
+        <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar">
+            <span id="toggle-icon">◀</span>
+        </button>
     </aside>
 
-    <main>
+    <main id="main-content">
         @RenderBody()
     </main>
 
-    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        // ── SIDEBAR COLLAPSE ──────────────────────────────────────
+        const sidebar    = document.getElementById('sidebar');
+        const toggleIcon = document.getElementById('toggle-icon');
 
+        function toggleSidebar() {
+            const collapsed = sidebar.classList.toggle('collapsed');
+            toggleIcon.textContent = collapsed ? '▶' : '◀';
+            localStorage.setItem('sidebar_collapsed', collapsed ? '1' : '0');
+        }
+        if (localStorage.getItem('sidebar_collapsed') === '1') {
+            sidebar.classList.add('collapsed');
+            toggleIcon.textContent = '▶';
+        }
+
+        // ── THEME TOGGLE ──────────────────────────────────────────
+        const themeIcon  = document.getElementById('theme-icon');
+        const themeLabel = document.getElementById('theme-label');
+
+        function toggleTheme() {
+            const html    = document.documentElement;
+            const isLight = html.dataset.theme === 'light';
+            html.dataset.theme = isLight ? 'dark' : 'light';
+            themeIcon.textContent  = isLight ? '☀' : '☾';
+            themeLabel.textContent = isLight ? 'Light mode' : 'Dark mode';
+            localStorage.setItem('theme', html.dataset.theme);
+        }
+
+        // Restore saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.dataset.theme = savedTheme;
+        if (savedTheme === 'light') {
+            themeIcon.textContent  = '☾';
+            themeLabel.textContent = 'Dark mode';
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -27,4 +27,5 @@ public class DepotData
     public bool IsDeleted { get; set; } = false;
     public string? ApproverId { get; set; }
     public User? User { get; set; }
+    //public int? Depot { get; set; }
 }
