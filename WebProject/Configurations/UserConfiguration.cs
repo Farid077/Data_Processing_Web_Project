@@ -19,9 +19,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IsDeleted)
             .HasDefaultValue(false);
 
-        builder.Property(x => x.IsConfirmed)
-            .HasDefaultValue(false);
-
         builder.HasOne(x => x.Role)
             .WithMany(x => x.Users)
             .HasForeignKey(x => x.RoleId)

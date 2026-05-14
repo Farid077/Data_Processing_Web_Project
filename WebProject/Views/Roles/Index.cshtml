@@ -27,7 +27,6 @@
         <thead>
             <tr>
                 <th>Role</th>
-                <th>Department</th>
                 <th>Page - Access</th>
                 <th>Users</th>
                 <th>Actions</th>
@@ -43,9 +42,6 @@
                                 <div class="cell-name">@role.Name</div>
                             </div>
                         </div>
-                    </td>
-                    <td>
-                        <div class="cell-name">@role.Department</div>
                     </td>
                     <td>
                         @foreach (var perm in role.Permissions)

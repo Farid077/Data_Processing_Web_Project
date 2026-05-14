@@ -29,7 +29,11 @@
                class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")" title="Roles">
                 <span class="icon">◫</span> <span class="nav-text">Roles</span>
             </a>
-            <a asp-action="Index" asp-controller="Departments"
+            <a asp-action="DepotData" asp-controller="Home"
+               class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depot Data</span>
+            </a>
+            @* <a asp-action="Index" asp-controller="Departments"
                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">
                 <span class="icon">◫</span> <span class="nav-text">Departments</span>
             </a>
@@ -40,11 +44,7 @@
             <a asp-action="Products" asp-controller="Home"
                class="@(ViewData["ActivePage"]?.ToString() == "Products" ? "active" : "")" title="Products">
                 <span class="icon">◫</span> <span class="nav-text">Products</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depot Data</span>
-            </a>
+            </a> *@
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" title="Logout">

@@ -6,10 +6,6 @@
 
 <div class="depot-page">
 
-    <div class="topbar">
-        <div class="page-title">Depot <span>Data</span></div>
-    </div>
-
     <div class="depot-toolbar">
         <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
         <div class="depot-search-wrap">
@@ -79,6 +75,9 @@ let sortKey      = null;
 let sortDir      = 'asc';
 let colFilters   = {};           // colKey → Set of selected values
 let dateFilters  = [];           // array of 'YYYY-MM-DD'
+let _fddPanel     = null;
+let _fddActiveCol = null;
+let _fddActiveBtn = null;
 
 // ══════════════════════════════════════════════════════════════════════
 //  INIT
@@ -87,11 +86,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadBlocked();
     buildHeaders();
     buildFilterRow();
+    _fddPanel = document.createElement('div');
+    _fddPanel.className = 'fdd-panel';
+    _fddPanel.id = 'fdd-global-panel';
+    _fddPanel.hidden = true;
+    document.body.appendChild(_fddPanel);
     await loadData();
 
     // Close filter dropdowns when clicking outside
     document.addEventListener('click', e => {
-        if (!e.target.closest('.fdd')) closeAllDropdowns();
+        if (!e.target.closest('.fdd-panel')) closeAllDropdowns();
     });
 });
 
@@ -236,61 +240,61 @@ function buildFilterRow() {
 }
 
 function toggleDropdown(wrap) {
-    const panel   = wrap.querySelector('.fdd-panel');
-    const isOpen  = !panel.hidden;
-    closeAllDropdowns();
-    if (isOpen) return;
-
     const colKey = wrap.dataset.col;
+    const btn    = wrap.querySelector('.fdd-btn');
 
-    // Populate checkboxes with current unique values
+    // Toggle off if already open for this col
+    if (_fddActiveCol === colKey && !_fddPanel.hidden) {
+        closeAllDropdowns(); return;
+    }
+
+    closeAllDropdowns();
+    _fddActiveCol = colKey;
+    _fddActiveBtn = btn;
+
+    // Populate checkboxes
     const currentFilter = colFilters[colKey];
     const uniq = [...new Set(allData.map(r => String(r[colKey] ?? '')))].sort();
-    panel.innerHTML = '';
+    _fddPanel.innerHTML = '';
     uniq.forEach(v => {
-        const id  = `fdd-${colKey}-${v}`;
         const lbl = document.createElement('label');
-        lbl.htmlFor = id;
         const chk = document.createElement('input');
-        chk.type = 'checkbox';
-        chk.id   = id;
-        chk.value = v;
-        chk.checked = currentFilter instanceof Set ? currentFilter.has(v) : false;
-        chk.onchange = () => updateDropdownFilter(wrap);
+        chk.type    = 'checkbox';
+        chk.value   = v;
+        chk.checked = currentFilter instanceof Set && currentFilter.has(v);
+        chk.onchange = () => updateDropdownFilter(colKey, btn);
         lbl.appendChild(chk);
         lbl.appendChild(document.createTextNode(v === '' ? '(empty)' : v));
-        panel.appendChild(lbl);
+        _fddPanel.appendChild(lbl);
     });
 
-    // Position panel below the button
-    panel.hidden = false;
-    const btn  = wrap.querySelector('.fdd-btn');
+    // Position relative to viewport (Fix 2)
     const rect = btn.getBoundingClientRect();
-    panel.style.top  = (rect.bottom + 4) + 'px';
-    panel.style.left = rect.left + 'px';
-    panel.style.minWidth = Math.max(rect.width, 150) + 'px';
+    _fddPanel.style.top      = (rect.bottom + 4) + 'px';
+    _fddPanel.style.left     = rect.left + 'px';
+    _fddPanel.style.minWidth = Math.max(rect.width, 100) + 'px';
+    _fddPanel.hidden = false;
 }
 
-function updateDropdownFilter(wrap) {
-    const colKey   = wrap.dataset.col;
-    const checked  = Array.from(wrap.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value);
-    const btn      = wrap.querySelector('.fdd-btn');
-    const label    = btn.querySelector('.fdd-label');
-
+function updateDropdownFilter(colKey, btn) {
+    const checked = Array.from(_fddPanel.querySelectorAll('input:checked')).map(c => c.value);
+    const label   = btn.querySelector('.fdd-label');
     if (checked.length === 0) {
         colFilters[colKey] = null;
-        label.textContent = 'All';
+        label.textContent  = 'All';
         btn.classList.remove('has-filter');
     } else {
         colFilters[colKey] = new Set(checked);
-        label.textContent = checked.length === 1 ? checked[0] : `${checked.length} selected`;
+        label.textContent  = checked.length === 1 ? checked[0] : `${checked.length} selected`;
         btn.classList.add('has-filter');
     }
     renderTable();
 }
 
 function closeAllDropdowns() {
-    document.querySelectorAll('.fdd-panel').forEach(p => p.hidden = true);
+    _fddPanel.hidden  = true;
+    _fddActiveCol = null;
+    _fddActiveBtn = null;
 }
 
 function renderDateTags() {
@@ -606,38 +610,43 @@ function togglePinCol(colKey) {
 }
 
 function applyColPinning() {
-    // Clear previous pinned styles on all non-id columns
-    document.querySelectorAll('#depot-table td.col-pinned, #depot-table th.col-pinned').forEach(el => {
+    // Clear old pins
+    document.querySelectorAll('#depot-table .col-pinned').forEach(el => {
         el.classList.remove('col-pinned');
-        el.style.removeProperty('left');
         el.style.removeProperty('position');
+        el.style.removeProperty('left');
         el.style.removeProperty('z-index');
+        el.style.removeProperty('background');
     });
 
     if (pinnedColKeys.length === 0) return;
 
-    requestAnimationFrame(() => {
-        // Start offset after the ID column
+    // Wait for layout to fully settle before reading widths (Fix 4)
+    requestAnimationFrame(() => requestAnimationFrame(() => {
         const idTh = document.querySelector('#header-row th[data-key="id"]');
-        let offset = idTh ? idTh.offsetWidth : 0;
+        let offset = idTh ? idTh.getBoundingClientRect().width : 60;
 
         pinnedColKeys.forEach(colKey => {
-            const colIdx = COLUMNS.findIndex(c => c.key === colKey);
+            const colIdx  = COLUMNS.findIndex(c => c.key === colKey);
             if (colIdx === -1) return;
+
+            const headerTh = document.querySelector(`#header-row th:nth-child(${colIdx + 1})`);
+            const colWidth = headerTh ? headerTh.getBoundingClientRect().width : 100;
 
             document.querySelectorAll('#depot-table tr').forEach(tr => {
                 const cell = tr.children[colIdx];
                 if (!cell) return;
+                const inHead = !!tr.closest('thead');
                 cell.classList.add('col-pinned');
-                cell.style.position = 'sticky';
-                cell.style.left = offset + 'px';
-                cell.style.zIndex = tr.closest('thead') ? '20' : '4';
+                cell.style.position   = 'sticky';
+                cell.style.left       = offset + 'px';
+                cell.style.zIndex     = inHead ? '18' : '3';
+                cell.style.background = 'var(--surface)'; // always correct regardless of theme
             });
 
-            const headerTh = document.querySelector(`#header-row th:nth-child(${colIdx + 1})`);
-            if (headerTh) offset += headerTh.offsetWidth;
+            offset += colWidth;
         });
-    });
+    }));
 }
 
 // ══════════════════════════════════════════════════════════════════════

@@ -21,7 +21,7 @@ public class HomeController : Controller
 
     public IActionResult DepotData() => View();
 
-    public IActionResult Products() => View();
+    //public IActionResult Products() => View();
 
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

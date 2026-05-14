@@ -16,11 +16,11 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.Property(x => x.Permissions)
             .IsRequired();
 
-        builder.HasOne(x => x.Department)
-            .WithMany(x => x.Roles)
-            .HasForeignKey(x => x.DepartmentId)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.SetNull);
+        //builder.HasOne(x => x.Department)
+        //    .WithMany(x => x.Roles)
+        //    .HasForeignKey(x => x.DepartmentId)
+        //    .IsRequired(false)
+        //    .OnDelete(DeleteBehavior.SetNull);
 
         //builder.HasData(
         //    new Role
