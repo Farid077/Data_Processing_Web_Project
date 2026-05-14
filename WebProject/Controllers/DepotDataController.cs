@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebProject.DataAccess;
 using WebProject.Models;
 
@@ -43,17 +44,19 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // GET api/depotdata
     [HttpGet]
-    public IActionResult GetAll() =>
-        Ok(_items.Where(x => !x.IsDeleted).ToList());
+    public async Task<IActionResult> GetAll(int? depot, CancellationToken ct = default) =>
+        Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
 
     // POST api/depotdata
     [HttpPost]
-    public IActionResult Create([FromBody] DepotData item)
+    public async Task<IActionResult> Create([FromBody] DepotData item, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(item.DQN)) return BadRequest("DQN is required.");
-        item.Id = _nextId++;
-        item.IsDeleted = false;
+        //item.Id = _nextId++;
+        //item.IsDeleted = false;
         _items.Add(item);
+        await _context.DepotData.AddAsync(item, ct);
+        await _context.SaveChangesAsync(ct);
         return Ok(item);
     }
 

@@ -16,10 +16,10 @@ public class DepotDataConfiguration : IEntityTypeConfiguration<DepotData>
         builder.Property(x => x.IsDeleted)
             .HasDefaultValue(false);
 
-        //builder.HasOne(x => x.User)
-        //    .WithMany(x => x.Depots)
-        //    .HasForeignKey(x => x.UserId)
-        //    .IsRequired(false)
-        //    .OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne(x => x.User)
+            .WithMany(x => x.ApprovedDepotData)
+            .HasForeignKey(x => x.ApproverId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

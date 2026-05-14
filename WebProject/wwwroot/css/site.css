@@ -634,7 +634,7 @@ aside.collapsed {
 
         /* Filter row (2nd header row) */
         #depot-table thead tr.filter-row th {
-            padding: 4px 6px;
+            padding: 0px 2px;
             background: #111118;
             border-bottom: 1px solid var(--border);
         }
@@ -1197,8 +1197,12 @@ main {
 }
 
 /* Filter row */
+.filter-row {
+    height: 35px;
+}
+
 #depot-table thead tr.filter-row th {
-    padding: 3px 6px;
+    padding: 0px 2px;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
 }
@@ -1426,6 +1430,7 @@ main {
 /* ── CUSTOM FILTER DROPDOWN ── */
 .fdd {
     position: relative;
+    height: 35px;
 }
 
 .fdd-btn {
@@ -1443,6 +1448,7 @@ main {
     cursor: pointer;
     min-width: 80px;
     width: 100%;
+    height: 100%;
     transition: border-color .13s;
 }
 

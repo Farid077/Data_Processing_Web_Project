@@ -1,6 +1,6 @@
 ﻿namespace WebProject.Models;
 
-public class DepotData
+public class DepotData : BaseEntity
 {
     public int Id { get; set; }
     public int SN { get; set; }
@@ -24,8 +24,7 @@ public class DepotData
     public string? Note { get; set; }
     public DateTime? ConfirmedDate { get; set; }
     public bool IsConfirmed { get; set; } = false;
-    public bool IsDeleted { get; set; } = false;
     public string? ApproverId { get; set; }
     public User? User { get; set; }
-    //public int? Depot { get; set; }
+    public int? Depot { get; set; }
 }
