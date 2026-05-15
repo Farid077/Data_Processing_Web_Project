@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WebProject.DataAccess;
 using WebProject.Models;
 
@@ -62,45 +63,75 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // PUT api/depotdata/{id}
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] DepotData updated)
+    public async Task<IActionResult> Update(int id, [FromBody] DepotData updated, CancellationToken ct = default)
     {
         var item = _items.FirstOrDefault(x => x.Id == id && !x.IsDeleted);
+        var data = _context.DepotData.FirstOrDefault(x => x.Id == id);
         if (item == null) return NotFound();
+        if (data == null) return NotFound();
 
         // Only update fields that are NOT blocked
-        if (!_blockedColumns.Contains("SN"))       item.SN       = updated.SN;
-        if (!_blockedColumns.Contains("DQN"))      item.DQN      = updated.DQN;
-        if (!_blockedColumns.Contains("EyNom"))    item.EyNom    = updated.EyNom;
-        if (!_blockedColumns.Contains("DVR"))      item.DVR      = updated.DVR;
-        if (!_blockedColumns.Contains("CD"))       item.CD       = updated.CD;
-        if (!_blockedColumns.Contains("QapiR"))    item.QapiR    = updated.QapiR;
-        if (!_blockedColumns.Contains("SayKam"))   item.SayKam   = updated.SayKam;
-        if (!_blockedColumns.Contains("HDDSt"))    item.HDDSt    = updated.HDDSt;
-        if (!_blockedColumns.Contains("HDDHc"))    item.HDDHc    = updated.HDDHc;
-        if (!_blockedColumns.Contains("HDDSM"))    item.HDDSM    = updated.HDDSM;
-        if (!_blockedColumns.Contains("DVRSt"))    item.DVRSt    = updated.DVRSt;
-        if (!_blockedColumns.Contains("Kam"))      item.Kam      = updated.Kam;
-        if (!_blockedColumns.Contains("KamSt"))    item.KamSt    = updated.KamSt;
-        if (!_blockedColumns.Contains("KamNom"))   item.KamNom   = updated.KamNom;
-        if (!_blockedColumns.Contains("SalMon"))   item.SalMon   = updated.SalMon;
-        if (!_blockedColumns.Contains("DaySes"))   item.DaySes   = updated.DaySes;
-        if (!_blockedColumns.Contains("SurMik"))   item.SurMik   = updated.SurMik;
-        if (!_blockedColumns.Contains("Trafared")) item.Trafared = updated.Trafared;
-        if (!_blockedColumns.Contains("Note"))     item.Note     = updated.Note;
-        if (!_blockedColumns.Contains("ConfirmedDate")) item.ConfirmedDate = updated.ConfirmedDate;
-        if (!_blockedColumns.Contains("IsConfirmed"))   item.IsConfirmed   = updated.IsConfirmed;
+        if (!_blockedColumns.Contains("SN"))       data.SN       = updated.SN;
+        if (!_blockedColumns.Contains("DQN"))      data.DQN      = updated.DQN;
+        if (!_blockedColumns.Contains("EyNom"))    data.EyNom    = updated.EyNom;
+        if (!_blockedColumns.Contains("DVR"))      data.DVR      = updated.DVR;
+        if (!_blockedColumns.Contains("CD"))       data.CD       = updated.CD;
+        if (!_blockedColumns.Contains("QapiR"))    data.QapiR    = updated.QapiR;
+        if (!_blockedColumns.Contains("SayKam"))   data.SayKam   = updated.SayKam;
+        if (!_blockedColumns.Contains("HDDSt"))    data.HDDSt    = updated.HDDSt;
+        if (!_blockedColumns.Contains("HDDHc"))    data.HDDHc    = updated.HDDHc;
+        if (!_blockedColumns.Contains("HDDSM"))    data.HDDSM    = updated.HDDSM;
+        if (!_blockedColumns.Contains("DVRSt"))    data.DVRSt    = updated.DVRSt;
+        if (!_blockedColumns.Contains("Kam"))      data.Kam      = updated.Kam;
+        if (!_blockedColumns.Contains("KamSt"))    data.KamSt    = updated.KamSt;
+        if (!_blockedColumns.Contains("KamNom"))   data.KamNom   = updated.KamNom;
+        if (!_blockedColumns.Contains("SalMon"))   data.SalMon   = updated.SalMon;
+        if (!_blockedColumns.Contains("DaySes"))   data.DaySes   = updated.DaySes;
+        if (!_blockedColumns.Contains("SurMik"))   data.SurMik   = updated.SurMik;
+        if (!_blockedColumns.Contains("Trafared")) data.Trafared = updated.Trafared;
+        if (!_blockedColumns.Contains("Note"))     data.Note     = updated.Note;
+        if (!_blockedColumns.Contains("ConfirmedDate")) data.ConfirmedDate = updated.ConfirmedDate;
+        if (!_blockedColumns.Contains("IsConfirmed"))   data.IsConfirmed   = updated.IsConfirmed;
 
-        return Ok(item);
+        data.UpdatedTime = DateTime.UtcNow.AddHours(4);
+        await _context.SaveChangesAsync(ct);
+
+        return Ok(data);
     }
 
     // DELETE api/depotdata/{id}  (soft delete)
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
         var item = _items.FirstOrDefault(x => x.Id == id);
+        var data = await _context.DepotData.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (item == null) return NotFound();
+        if (data == null) return NotFound();
         item.IsDeleted = true;
+        data.IsDeleted = true;
+        await _context.SaveChangesAsync(ct);
         return Ok();
+    }
+
+    // Confirm api/depotdata/Confirm/{id}
+    [HttpPost("Confirm/{id}")]
+    public async Task<IActionResult> Confirm(int id, CancellationToken ct = default)
+    {
+        var item = _items.FirstOrDefault(x => x.Id == id);
+        var data = await _context.DepotData.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (item == null) return NotFound();
+        if (data == null) return NotFound();
+
+        if (HttpContext.User.Identity?.IsAuthenticated == true)
+            data.ApproverId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("ClaimTypes NameIdentifier is not found");
+        else
+            throw new Exception("ClaimTypes NameIdentifier is not found");
+        
+        item.IsConfirmed = true;
+        data.IsConfirmed = true;
+        data.ConfirmedDate = DateTime.UtcNow.AddHours(4);
+        await _context.SaveChangesAsync(ct);
+        return Ok(data);
     }
 
     // GET api/depotdata/blocked-columns

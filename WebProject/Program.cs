@@ -6,6 +6,7 @@ using WebProject.ExternalServices.Implements;
 using WebProject.ExternalServices.Interfaces;
 using WebProject.Middlewares;
 using WebProject.Models;
+using WebProject.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ ThreadPool.SetMinThreads(workerThreads: 10, completionPortThreads: 10);
 builder.Services.AddMvc();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddSingleton<IExcelDataStore, ExcelDataStore>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -87,6 +90,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();

@@ -95,6 +95,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "Confirm",
+    "RelativePath": "api/DepotData/Confirm",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "WebProject.Controllers.ProductsController",
     "Method": "GetAll",
     "RelativePath": "api/Products",

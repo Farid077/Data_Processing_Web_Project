@@ -392,8 +392,9 @@ function buildDisplayRow(item) {
         <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
                 title="Pin / unpin row" onclick="togglePinRow(${item.id})">📌</button>
         <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Edit</button>
-        <button class="tbl-action-btn del"  onclick="deleteRow(${item.id})">Delete</button>
+        <button class="tbl-action-btn edit"  onclick="ConfirmRow(${item.id})">Confirm</button>
     </div>`;
+        // <button class="tbl-action-btn del"  onclick="deleteRow(${item.id})">Delete</button>
     tr.appendChild(actTd);
     return tr;
 }
@@ -412,12 +413,15 @@ function startEdit(id) {
         const td = tds[i];
         const v  = item[col.key] ?? '';
         if (col.type === 'bool') {
-            td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`;
-        } else if (col.type === 'date') {
+            td.innerHTML = ``; }
+            // td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`; }
+        else if (col.type === 'date') {
             td.innerHTML = `<input type="date" data-key="${col.key}" value="${v ? String(v).split('T')[0] : ''}">`;
-        } else if (col.type === 'enum') {
+        }
+        else if (col.type === 'enum') {
             td.innerHTML = buildSelectHtml(col.key, v);
-        } else if (col.type === 'combo') {
+        }
+        else if (col.type === 'combo') {
             const custom = v && !STATUSES.includes(v);
             td.innerHTML = `<div class="combo-wrap">
                 <select data-key="${col.key}" onchange="comboChange(this)">
@@ -428,14 +432,15 @@ function startEdit(id) {
                 <input type="text" data-key="${col.key}-custom" placeholder="Type here…"
                        value="${custom ? esc(v) : ''}" style="${custom ? '' : 'display:none'}">
             </div>`;
-        } else {
+        }
+        else {
             td.innerHTML = `<input type="${col.type==='number'?'number':'text'}" data-key="${col.key}" value="${esc(String(v))}">`;
         }
     });
 
     tds[COLUMNS.length].innerHTML = `<div class="tbl-actions">
         <button class="tbl-action-btn save"   onclick="saveEdit(${id})">Save</button>
-        <button class="tbl-action-btn cancel" onclick="renderTable()">Cancel</button>
+        <button class="tbl-action-btn del" onclick="renderTable()">Cancel</button>
     </div>`;
 }
 
@@ -523,7 +528,7 @@ function addNewRow() {
     actTd.classList.add('col-sticky-right');
     actTd.innerHTML = `<div class="tbl-actions">
         <button class="tbl-action-btn save"   onclick="createRow()">Create</button>
-        <button class="tbl-action-btn cancel" onclick="this.closest('tr').remove()">Cancel</button>
+        <button class="tbl-action-btn del" onclick="this.closest('tr').remove()">Cancel</button>
     </div>`;
     tr.appendChild(actTd);
     tbody.prepend(tr);
@@ -570,6 +575,22 @@ async function deleteRow(id) {
         renderTable();
         showAlert('Deleted.', 'warning');
     } catch { showAlert('Delete failed.', 'danger'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CONFIRM
+// ══════════════════════════════════════════════════════════════════════
+async function ConfirmRow(id) {
+    if (!confirm('Confirm this row?')) return;
+    try {
+        const res = await fetch(`${API}/Confirm/${id}`, { method: 'POST' });
+        if (!res.ok) throw new Error();
+        // allData = allData.filter(x => x.id !== id);
+        const saved = await res.json();
+        allData[allData.findIndex(x => x.id === id)] = saved;
+        renderTable();
+        showAlert('Confirmed.', 'success');
+    } catch { showAlert('Confirm failed.', 'danger'); }
 }
 
 // ══════════════════════════════════════════════════════════════════════
