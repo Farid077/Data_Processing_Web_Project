@@ -29,9 +29,17 @@
                class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")" title="Roles">
                 <span class="icon">◫</span> <span class="nav-text">Roles</span>
             </a>
-            <a asp-action="DepotData" asp-controller="Home"
+            <a asp-action="AllDepotsData" asp-controller="Home"
                class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depot Data</span>
+                <span class="icon">◫</span> <span class="nav-text">Bütün Depolar</span>
+            </a>
+            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="1"
+               class="@(ViewData["ActivePage"]?.ToString() == "Depot 1" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depo 1</span>
+            </a>
+            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="2"
+               class="@(ViewData["ActivePage"]?.ToString() == "Depot 2" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depo 2</span>
             </a>
             @* <a asp-action="Index" asp-controller="Departments"
                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">

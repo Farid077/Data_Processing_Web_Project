@@ -680,3 +680,14 @@ C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\WebProject.genruntimeconfig.cache
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\ref\WebProject.dll
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\w5vimncr91-{0}-41tm80l7o2-41tm80l7o2.gz
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\ClosedXML.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\ClosedXML.Parser.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\DocumentFormat.OpenXml.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\DocumentFormat.OpenXml.Framework.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\EPPlus.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\EPPlus.Interfaces.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\ExcelNumberFormat.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\Microsoft.IO.RecyclableMemoryStream.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\RBush.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\SixLabors.Fonts.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\System.IO.Packaging.dll

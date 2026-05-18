@@ -17,7 +17,7 @@ namespace WebProject.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.6")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -30,27 +30,25 @@ namespace WebProject.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApproverId")
-                        .HasColumnType("character varying(16)");
-
                     b.Property<string>("CD")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("ConfirmedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("ConfirmerId")
+                        .HasColumnType("character varying(16)");
+
                     b.Property<DateTime>("CreatedTime")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DQN")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("DVR")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("DVRSt")
+                    b.Property<string>("DVRV")
                         .HasColumnType("text");
 
                     b.Property<string>("DaySes")
@@ -60,16 +58,15 @@ namespace WebProject.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("EyNom")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("HDDHc")
+                    b.Property<string>("HDDH")
                         .HasColumnType("text");
 
                     b.Property<string>("HDDSM")
                         .HasColumnType("text");
 
-                    b.Property<string>("HDDSt")
+                    b.Property<string>("HDDV")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsConfirmed")
@@ -88,16 +85,16 @@ namespace WebProject.Migrations
                     b.Property<string>("KamNom")
                         .HasColumnType("text");
 
-                    b.Property<string>("KamSt")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Note")
+                    b.Property<string>("KamV")
                         .HasColumnType("text");
 
                     b.Property<string>("QapiR")
                         .HasColumnType("text");
 
-                    b.Property<int>("SN")
+                    b.Property<string>("Qeyd")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("SN")
                         .HasColumnType("integer");
 
                     b.Property<string>("SalMon")
@@ -117,7 +114,7 @@ namespace WebProject.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApproverId");
+                    b.HasIndex("ConfirmerId");
 
                     b.ToTable("DepotData");
                 });
@@ -172,7 +169,7 @@ namespace WebProject.Migrations
                 {
                     b.HasOne("WebProject.Models.User", "User")
                         .WithMany("ApprovedDepotData")
-                        .HasForeignKey("ApproverId")
+                        .HasForeignKey("ConfirmerId")
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");

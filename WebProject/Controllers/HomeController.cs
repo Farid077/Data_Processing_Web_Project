@@ -20,7 +20,8 @@ public class HomeController(IExcelService _excelService, IExcelDataStore _dataSt
     //    return View();
     //}
 
-    public IActionResult DepotData() => View();
+    public IActionResult DepotData(int depot) => View(depot);
+    public IActionResult AllDepotsData() => View();
 
     //public IActionResult Products() => View();
 
@@ -34,12 +35,12 @@ public class HomeController(IExcelService _excelService, IExcelDataStore _dataSt
 
     public IActionResult Index()
     {
-        var data = _dataStore.GetData();
-        ViewBag.HasData = data != null;
-        ViewBag.FileName = data?.FileName;
-        ViewBag.ImportedAt = data?.ImportedAt;
-        ViewBag.RowCount = data?.Rows.Count ?? 0;
-        return View();
+        ExcelData data = _dataStore.GetData() ?? new ExcelData();
+        //ViewBag.HasData = data != null;
+        //ViewBag.FileName = data?.FileName;
+        //ViewBag.ImportedAt = data?.ImportedAt;
+        //ViewBag.RowCount = data?.Rows.Count ?? 0;
+        return View(data);
     }
 
     [HttpPost]
@@ -105,16 +106,18 @@ public class HomeController(IExcelService _excelService, IExcelDataStore _dataSt
             .Take(request.PageSize)
             .ToList();
 
-        return Json(new GridResponse
-        {
-            Headers = data.Headers,
-            Rows = paged,
-            TotalCount = totalCount,
-            Page = request.Page,
-            PageSize = request.PageSize,
-            TotalPages = (int)Math.Ceiling((double)totalCount / request.PageSize),
-            FileName = data.FileName
-        });
+        return RedirectToAction("Index");
+
+        //return Json(new GridResponse
+        //{
+        //    Headers = data.Headers,
+        //    Rows = paged,
+        //    TotalCount = totalCount,
+        //    Page = request.Page,
+        //    PageSize = request.PageSize,
+        //    TotalPages = (int)Math.Ceiling((double)totalCount / request.PageSize),
+        //    FileName = data.FileName
+        //});
     }
 
     [HttpPost]

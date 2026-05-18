@@ -1,11 +1,34 @@
+@model int
+
 @{
-    ViewData["Title"] = "Depot Data";
-    ViewData["ActivePage"] = "DepotData";
+    ViewData["Title"] = $"Depo {Model}";
+    ViewData["ActivePage"] = $"Depot {Model}";
 }
 
 <div class="depot-page">
     <div class="depot-toolbar">
         <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
+        <form id="import-form" asp-action="Import" asp-controller="DepotData" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
+            @Html.AntiForgeryToken()
+            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+                ⬆ Import Excel
+                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
+            </label>
+        </form>
+        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
+            @Html.AntiForgeryToken()
+            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+                ⬆ Import Excel Depo 1
+                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
+            </label>
+        </form>
+        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
+            @Html.AntiForgeryToken()
+            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+                ⬆ Import Excel Depo 2
+                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
+            </label>
+        </form>
         <div class="depot-search-wrap">
             <span class="search-icon">⌕</span>
             <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
@@ -38,7 +61,7 @@ const API      = '/api/depotdata';
 const STATUSES = ['Pending', 'Done', 'Canceled'];
 
 const COLUMNS = [
-    { key: 'id',            label: 'ID',        type: 'number', readOnly: true,  filterable: false, stickyLeft: true  },
+    // { key: 'id',            label: 'ID',        type: 'number', readOnly: true,  filterable: false, stickyLeft: true  },
     { key: 'sn',            label: 'SN',        type: 'number', filterable: true  },
     { key: 'dqn',           label: 'DQN',       type: 'text',   filterable: true  },
     { key: 'eyNom',         label: 'EyNom',     type: 'text',   filterable: true  },
@@ -98,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadData() {
-    const res = await fetch(API);
+    const res = await fetch(`${API}?depot=${@Model}`);
     allData = await res.json();
     renderTable();
 }
@@ -412,8 +435,7 @@ function startEdit(id) {
         if (col.readOnly || blockedCols.has(col.key)) return;
         const td = tds[i];
         const v  = item[col.key] ?? '';
-        if (col.type === 'bool') {
-            td.innerHTML = ``; }
+        if (col.type === 'bool') ;
             // td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`; }
         else if (col.type === 'date') {
             td.innerHTML = `<input type="date" data-key="${col.key}" value="${v ? String(v).split('T')[0] : ''}">`;

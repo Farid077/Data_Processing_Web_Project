@@ -18,7 +18,7 @@ public class DepotDataConfiguration : IEntityTypeConfiguration<DepotData>
 
         builder.HasOne(x => x.User)
             .WithMany(x => x.ApprovedDepotData)
-            .HasForeignKey(x => x.ApproverId)
+            .HasForeignKey(x => x.ConfirmerId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
     }
