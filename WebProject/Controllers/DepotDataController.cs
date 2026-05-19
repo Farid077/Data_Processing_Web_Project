@@ -200,7 +200,14 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         // await _context.SaveChangesAsync();
 
         var results = new List<DepotData>();
+        int depotNum = depot ?? 0;
         var sheet = package.Workbook.Worksheets[0]; // first sheet
+
+        if (package.Workbook.Worksheets.Count() >= depotNum)
+        {
+            sheet = package.Workbook.Worksheets[depotNum-1];
+        }
+        //var sheet = package.Workbook.Worksheets.Count(); // first sheet
         int rows = sheet.Dimension?.Rows ?? 0;
 
         if (rows < 2) return BadRequest("Excel file is empty or has no data rows.");
@@ -262,6 +269,6 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         // ─────────────────────────────────────────────────────────
 
         //return Ok(new { imported = results.Count, rows = results });
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", "Home");
     }
 }

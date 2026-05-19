@@ -21,20 +21,24 @@
     </div>
 </div>
 
-<div class="topbar">
+@* <div class="topbar">
     <div class="page-title">Users</div>
-</div>
+</div> *@
 
-<div class="stats-grid">
+@* <div class="stats-grid">
     <div class="stat-card" style="--accent-color: var(--accent)">
         <div class="stat-icon">◈</div>
         <div class="stat-label">Total Users</div>
         <div class="stat-value">@Model.Count()</div>
     </div>
-</div>
+</div> *@
 
 <div class="section-header">
     <div class="section-title">User Management</div>
+    <div style="display: flex;">
+        <div class="stat-label">Total Users:</div>
+        <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
+    </div>
     <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New User</a>
 </div>
 

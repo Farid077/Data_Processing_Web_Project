@@ -24,7 +24,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         {
             Username = x.Username,
             Role = x.RoleId!,
-            CreatedTime = x.CreatedTime,
+            CreatedTime = DateOnly.FromDateTime(x.CreatedTime),
         })
         .ToListAsync(ct);
 

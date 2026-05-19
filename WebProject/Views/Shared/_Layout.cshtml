@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" />
     @await RenderSectionAsync("Styles", required: false)
+    @* <script>
+        // document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+        // const savedTheme = localStorage.getItem('theme') || 'dark';
+        // document.documentElement.dataset.theme = savedTheme;
+        // applySelectOptionTheme(savedTheme);
+    </script> *@
 </head>
 <body>
 
@@ -41,6 +47,22 @@
                class="@(ViewData["ActivePage"]?.ToString() == "Depot 2" ? "active" : "")" title="Depot Data">
                 <span class="icon">◫</span> <span class="nav-text">Depo 2</span>
             </a>
+            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="3"
+               class="@(ViewData["ActivePage"]?.ToString() == "Depot 3" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depo 3</span>
+            </a>
+            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="4"
+               class="@(ViewData["ActivePage"]?.ToString() == "Depot 4" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depo 4</span>
+            </a>
+            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="5"
+               class="@(ViewData["ActivePage"]?.ToString() == "Depot 5" ? "active" : "")" title="Depot Data">
+                <span class="icon">◫</span> <span class="nav-text">Depo 5</span>
+            </a>
+            @* @foreach (var perm in @User.FindAll("Permission"))
+            {
+                var pageName = Enum.GetValues<Pages>().FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x).ToString();
+            } *@
             @* <a asp-action="Index" asp-controller="Departments"
                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">
                 <span class="icon">◫</span> <span class="nav-text">Departments</span>
@@ -95,6 +117,15 @@
         const themeIcon  = document.getElementById('theme-icon');
         const themeLabel = document.getElementById('theme-label');
 
+        // function applySelectOptionTheme(theme) {
+        //     const bg = theme === 'light' ? '#ffffff' : '#111118';
+        //     const color = theme === 'light' ? '#1a1a2e' : '#ffffff';
+        //     document.querySelectorAll('option').forEach(opt => {
+        //         opt.style.background = bg;
+        //         opt.style.color = color;
+        //     });
+        // }
+
         function toggleTheme() {
             const html    = document.documentElement;
             const isLight = html.dataset.theme === 'light';
@@ -102,6 +133,7 @@
             themeIcon.textContent  = isLight ? '☀' : '☾';
             themeLabel.textContent = isLight ? 'Light mode' : 'Dark mode';
             localStorage.setItem('theme', html.dataset.theme);
+            // applySelectOptionTheme(html.dataset.theme);
         }
 
         // Restore saved theme
@@ -111,6 +143,7 @@
             themeIcon.textContent  = '☾';
             themeLabel.textContent = 'Dark mode';
         }
+        // applySelectOptionTheme(savedTheme);
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

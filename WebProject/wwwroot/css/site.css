@@ -228,7 +228,7 @@ button:active { transform: scale(0.97); }
 .section-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: .02em; }
 .section-title span { font-family: 'DM Mono', monospace; font-weight: 400; font-size: 12px; color: var(--text-dim); margin-left: 8px; }
 
-.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: scroll; height: 85vh; }
 
 .search-bar { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid var(--border); }
 .search-bar input { background: transparent; border: none; outline: none; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text); flex: 1; }
@@ -262,7 +262,7 @@ tbody tr:nth-child(6) { animation-delay: .30s; }
     to   { opacity: 1; transform: translateX(0); }
 }
 
-td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: middle; }
+td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: middle;}
 
 .cell-user { display: flex; align-items: center; gap: 12px; }
 
@@ -1008,6 +1008,16 @@ aside.collapsed {
 
     [data-theme="light"] tbody tr:hover {
         background: rgba(0,0,0,.03);
+    }
+
+    [data-theme="light"] select option {
+        background: #ffffff;
+        color: #1a1a2e;
+    }
+
+    [data-theme="light"] select {
+        background: #ffffff;
+        color: #1a1a2e;
     }
 
 /* ── SCROLLBARS ── */

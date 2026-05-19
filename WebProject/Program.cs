@@ -71,21 +71,24 @@ using (var scope = app.Services.CreateScope())
 
     var hasher = new PasswordHasher<User>();
 
-    if (!await db.Users.AnyAsync(u => u.Username == "admin"))
+    if (!await db.Users.AnyAsync(u => u.Username == "admin" && u.RoleId == "SuperAdmin"))
     {
-         await db.Users.AddAsync(new User
+        if (!await db.Users.AnyAsync(u => u.Username == "admin"))
         {
-            Username = "admin",
-            PasswordHash = hasher.HashPassword(null!, "admin"),
-            RoleId = "SuperAdmin"
-        });
-        await db.SaveChangesAsync();
-    }
-    else if (!await db.Users.AnyAsync(u => u.Username == "admin" && u.RoleId == "SuperAdmin"))
-    {
-        User user = await db.Users.FindAsync("admin") ?? throw new Exception("admin not found");
-        user!.RoleId = "SuperAdmin";
-        await db.SaveChangesAsync();
+            await db.Users.AddAsync(new User
+            {
+                Username = "admin",
+                PasswordHash = hasher.HashPassword(null!, "admin"),
+                RoleId = "SuperAdmin"
+            });
+            await db.SaveChangesAsync();
+        }
+        else
+        {
+            User? user = await db.Users.FindAsync("admin");
+            user!.RoleId = "SuperAdmin";
+            await db.SaveChangesAsync();
+        }
     }
 }
 

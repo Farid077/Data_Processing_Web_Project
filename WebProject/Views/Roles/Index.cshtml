@@ -5,7 +5,7 @@
     ViewData["ActivePage"] = "Roles";
 }
 
-<div class="topbar">
+@* <div class="topbar">
     <div class="page-title">Roles</div>
 </div>
 
@@ -15,10 +15,14 @@
         <div class="stat-label">Total Roles</div>
         <div class="stat-value">@Model.Count()</div>
     </div>
-</div>
+</div> *@
 
 <div class="section-header">
     <div class="section-title">Role Management</div>
+    <div style="display: flex;">
+        <div class="stat-label">Total Roles:</div>
+        <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
+    </div>
     <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New Role</a>
 </div>
 

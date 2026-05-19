@@ -7,32 +7,18 @@
 
 <div class="depot-page">
     <div class="depot-toolbar">
-        <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
-        <form id="import-form" asp-action="Import" asp-controller="DepotData" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
-            @Html.AntiForgeryToken()
-            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-                ⬆ Import Excel
-                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
-            </label>
-        </form>
-        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
-            @Html.AntiForgeryToken()
-            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-                ⬆ Import Excel Depo 1
-                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
-            </label>
-        </form>
-        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
-            @Html.AntiForgeryToken()
-            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-                ⬆ Import Excel Depo 2
-                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
-            </label>
-        </form>
+        @* <button class="btn-accent" onclick="addNewRow()">+ New Row</button> *@
         <div class="depot-search-wrap">
             <span class="search-icon">⌕</span>
             <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
         </div>
+        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
+            @Html.AntiForgeryToken()
+            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+                ⬆ Import Excel Depo @Model
+                <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
+            </label>
+        </form>
         <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
         <span class="row-count" id="row-count"></span>
     </div>
@@ -414,8 +400,8 @@ function buildDisplayRow(item) {
     actTd.innerHTML = `<div class="tbl-actions">
         <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
                 title="Pin / unpin row" onclick="togglePinRow(${item.id})">📌</button>
-        <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Edit</button>
-        <button class="tbl-action-btn edit"  onclick="ConfirmRow(${item.id})">Confirm</button>
+        <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
+        <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
     </div>`;
         // <button class="tbl-action-btn del"  onclick="deleteRow(${item.id})">Delete</button>
     tr.appendChild(actTd);
@@ -461,8 +447,8 @@ function startEdit(id) {
     });
 
     tds[COLUMNS.length].innerHTML = `<div class="tbl-actions">
-        <button class="tbl-action-btn save"   onclick="saveEdit(${id})">Save</button>
-        <button class="tbl-action-btn del" onclick="renderTable()">Cancel</button>
+        <button class="tbl-action-btn save" onclick="saveEdit(${id})">Yadda saxla</button>
+        <button class="tbl-action-btn del"  onclick="renderTable()">Ləğv et</button>
     </div>`;
 }
 
