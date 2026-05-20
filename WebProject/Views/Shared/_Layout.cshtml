@@ -27,7 +27,7 @@
                class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" title="Dashboard">
                 <span class="icon">▦</span> <span class="nav-text">Dashboard</span>
             </a>
-            <a asp-action="Index" asp-controller="Users"
+            @* <a asp-action="Index" asp-controller="Users"
                class="@(ViewData["ActivePage"]?.ToString() == "Users" ? "active" : "")" title="Users">
                 <span class="icon">◈</span> <span class="nav-text">Users</span>
             </a>
@@ -38,31 +38,36 @@
             <a asp-action="AllDepotsData" asp-controller="Home"
                class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
                 <span class="icon">◫</span> <span class="nav-text">Bütün Depolar</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="1"
+            </a> *@
+            @* <a asp-action="DepotData" asp-controller="Home" asp-route-depot="1"
                class="@(ViewData["ActivePage"]?.ToString() == "Depot 1" ? "active" : "")" title="Depot Data">
                 <span class="icon">◫</span> <span class="nav-text">Depo 1</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="2"
-               class="@(ViewData["ActivePage"]?.ToString() == "Depot 2" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depo 2</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="3"
-               class="@(ViewData["ActivePage"]?.ToString() == "Depot 3" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depo 3</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="4"
-               class="@(ViewData["ActivePage"]?.ToString() == "Depot 4" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depo 4</span>
-            </a>
-            <a asp-action="DepotData" asp-controller="Home" asp-route-depot="5"
-               class="@(ViewData["ActivePage"]?.ToString() == "Depot 5" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depo 5</span>
-            </a>
-            @* @foreach (var perm in @User.FindAll("Permission"))
-            {
+            </a> *@
+
+            @foreach (var perm in @User.FindAll("Permission")){
                 var pageName = Enum.GetValues<Pages>().FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x).ToString();
-            } *@
+
+                @if (!string.IsNullOrWhiteSpace(pageName) && pageName != "0" && pageName.ToString()[0] == 'D')
+                {
+                    <a asp-action="DepotData" asp-controller="Home" asp-route-depot="@pageName[^1]"
+                       class="@(ViewData["ActivePage"]?.ToString() == $"Depot {pageName[^1]}" ? "active" : "")" title="Depot Data">
+                        <span class="icon">◫</span> <span class="nav-text">Depo @pageName[^1]</span>
+                    </a>
+                }
+                else if (pageName == "AllDepos"){
+                    <a asp-action="AllDepotsData" asp-controller="Home"
+                       class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
+                        <span class="icon">◫</span> <span class="nav-text">Bütün Depolar</span>
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Index" asp-controller="@pageName"
+                       class="@(ViewData["ActivePage"]?.ToString() == $"{pageName}" ? "active" : "")" title="@pageName">
+                        <span class="icon">◈</span> <span class="nav-text">@pageName</span>
+                    </a>                    
+                }
+            }
             @* <a asp-action="Index" asp-controller="Departments"
                class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">
                 <span class="icon">◫</span> <span class="nav-text">Departments</span>

@@ -1,8 +1,12 @@
+using DocumentFormat.OpenXml.Math;
+//using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Security.Claims;
+using WebProject.Attributes;
 using WebProject.DataAccess;
+using WebProject.Migrations;
 using WebProject.Models;
 
 
@@ -33,10 +37,53 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
     }
 
+    //[HttpGet("1")]
+    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    //{
+    //    if (depot == null)
+    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+
+    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+    //}
+    //[HttpGet("2")]
+    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    //{
+    //    if (depot == null)
+    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+
+    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+    //}
+    //[HttpGet("3")]
+    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    //{
+    //    if (depot == null)
+    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+
+    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+    //}
+    //[HttpGet("4")]
+    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    //{
+    //    if (depot == null)
+    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+
+    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+    //}
+    //[HttpGet("5")]
+    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    //{
+    //    if (depot == null)
+    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+
+    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+    //}
+
     // POST api/depotdata
     [HttpPost]
+    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Create([FromBody] DepotData item, CancellationToken ct = default)
     {
+
         if (string.IsNullOrWhiteSpace(item.DQN)) return BadRequest("DQN is required.");
         //item.Id = _nextId++;
         //item.IsDeleted = false;
@@ -54,6 +101,23 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         var data = _context.DepotData.FirstOrDefault(x => x.Id == id);
         //if (item == null) return NotFound();
         if (data == null) return NotFound();
+
+        //var permissions = User.FindAll("Permissions");
+        var permissions = User.FindAll("Permission").Select(perm => int.Parse(perm.Value));
+
+        if (data.Depot == null)
+        {
+            bool isAllowed = permissions.Any(perm => (perm & (int)Pages.AllDepos) == (int)Pages.AllDepos && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
+            if (!isAllowed)
+                return BadRequest("You don't have permission to do this");
+        }
+        else
+        {
+            var page = Enum.GetValues<Pages>().FirstOrDefault(x => x.ToString() == "Depo" + data.Depot);
+            bool isAllowed = permissions.Any(perm => (perm & (int)page) == (int)page && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
+            if (!isAllowed)
+                return BadRequest("You don't have permission to do this");
+        }
 
         // Only update fields that are NOT blocked
         if (!_blockedColumns.Contains("SN"))       data.SN       = updated.SN;
@@ -84,6 +148,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // DELETE api/depotdata/{id}  (soft delete)
     [HttpDelete("{id}")]
+    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
         //var item = _items.FirstOrDefault(x => x.Id == id);
@@ -98,6 +163,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // DELETE api/depotdata/All  (hard delete)
     [HttpDelete("All")]
+    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Delete(CancellationToken ct = default)
     {
         //var item = _items.FirstOrDefault(x => x.Id == id);

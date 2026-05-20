@@ -64,6 +64,8 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
             return View(vm);
         }
 
+        vm.Username = vm.Username.Trim();
+
         if (await _context.Users.AnyAsync(x => x.Username.ToLower() == vm.Username.ToLower(), ct))
         {
             vm.RoleOptions = await _context.Roles.Select(r => r.Name).ToListAsync(ct);
