@@ -43,7 +43,7 @@ aside {
     to   { transform: translateX(0);     opacity: 1; }
 }
 
-.logo { padding: 0 24px 32px; border-bottom: 1px solid var(--border); }
+.logo { display: flex; align-items: center; padding: 0 10px 10px; border-bottom: 1px solid var(--border); }
 
 .logo-mark {
     width: 36px; height: 36px;
@@ -54,11 +54,11 @@ aside {
 }
 
 .logo h1 {
-    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600;
+    font-family: 'Syne', sans-serif; margin-left: 15px; margin-bottom: 10px; font-size: 12px; font-weight: 600;
     color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase;
 }
 
-nav { padding: 24px 12px; flex: 1; }
+nav { padding: 10px 12px; flex: 1; }
 
 .nav-label {
     font-size: 10px; letter-spacing: .14em; text-transform: uppercase;

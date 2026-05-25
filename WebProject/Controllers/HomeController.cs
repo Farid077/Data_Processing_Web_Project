@@ -20,20 +20,11 @@ public class HomeController(IExcelService _excelService, IExcelDataStore _dataSt
         return View();
     }
 
+
     [Authorize]
     public IActionResult DepotData(int depot)
     {
-        //var permissions = HttpContext.User.FindAll("Permission");
-        //foreach(var perm in permissions){
-        //    var pageName = Enum.GetValues<Pages>().FirstOrDefault(x => ((int.Parse(perm.Value) & (int)x) == (int)x) && x.ToString() == "Depo"+depot).ToString();
-        //    if (!string.IsNullOrWhiteSpace(pageName) && pageName != "0")
-        //    {
-        //        return View(depot);
-        //    }
-        //}
-
         var permissions = User.FindAll("Permission").Select(perm => int.Parse(perm.Value));
-
 
         var page = Enum.GetValues<Pages>().FirstOrDefault(x => x.ToString() == "Depo" + depot);
         bool isAllowed = permissions.Any(perm => (perm & (int)page) == (int)page && (perm & (int)PageAccess.Read) == (int)PageAccess.Read);

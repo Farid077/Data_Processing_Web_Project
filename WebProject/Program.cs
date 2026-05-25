@@ -29,7 +29,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Login";
         options.AccessDeniedPath = "/";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
         options.SlidingExpiration = true;
 
     });
@@ -55,7 +55,7 @@ using (var scope = app.Services.CreateScope())
         };
 
         await db.Roles.AddAsync(role);
-        await db.SaveChangesAsync();
+        //await db.SaveChangesAsync();
     }
 
     if(!await db.Roles.AnyAsync(r => r.Name == "User"))
@@ -66,7 +66,7 @@ using (var scope = app.Services.CreateScope())
         };
 
         await db.Roles.AddAsync(role);
-        await db.SaveChangesAsync();
+        //await db.SaveChangesAsync();
     }
 
     var hasher = new PasswordHasher<User>();
@@ -81,15 +81,35 @@ using (var scope = app.Services.CreateScope())
                 PasswordHash = hasher.HashPassword(null!, "admin"),
                 RoleId = "SuperAdmin"
             });
-            await db.SaveChangesAsync();
+            //await db.SaveChangesAsync();
         }
         else
         {
             User? user = await db.Users.FindAsync("admin");
             user!.RoleId = "SuperAdmin";
-            await db.SaveChangesAsync();
+            //await db.SaveChangesAsync();
         }
     }
+
+    if (!await db.BlockLists.AnyAsync(b => b.Key == "Columns"))
+    {
+        await db.BlockLists.AddAsync(new BlockList
+        {
+            Key = "Columns",
+            Value = []
+        });
+    }
+
+    if (!await db.BlockLists.AnyAsync(b => b.Key == "Rows"))
+    {
+        await db.BlockLists.AddAsync(new BlockList
+        {
+            Key = "Rows",
+            Value = []
+        });
+    }
+
+    await db.SaveChangesAsync();
 }
 
 app.UseHttpsRedirection();

@@ -37,47 +37,6 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
     }
 
-    //[HttpGet("1")]
-    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
-    //{
-    //    if (depot == null)
-    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
-
-    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
-    //}
-    //[HttpGet("2")]
-    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
-    //{
-    //    if (depot == null)
-    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
-
-    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
-    //}
-    //[HttpGet("3")]
-    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
-    //{
-    //    if (depot == null)
-    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
-
-    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
-    //}
-    //[HttpGet("4")]
-    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
-    //{
-    //    if (depot == null)
-    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
-
-    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
-    //}
-    //[HttpGet("5")]
-    //public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
-    //{
-    //    if (depot == null)
-    //        return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
-
-    //    return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
-    //}
-
     // POST api/depotdata
     [HttpPost]
     [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
@@ -119,26 +78,36 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 return BadRequest("You don't have permission to do this");
         }
 
+        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
+
+        if (blockedRows.Value.Contains(id.ToString()))
+        {
+            return BadRequest("This row is blocked.");
+        }
+
+        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+        ICollection<string> blockedColumnsList = blockedColumns.Value;
+
         // Only update fields that are NOT blocked
-        if (!_blockedColumns.Contains("SN"))       data.SN       = updated.SN;
-        if (!_blockedColumns.Contains("DQN"))      data.DQN      = updated.DQN;
-        if (!_blockedColumns.Contains("EyNom"))    data.EyNom    = updated.EyNom;
-        if (!_blockedColumns.Contains("DVR"))      data.DVR      = updated.DVR;
-        if (!_blockedColumns.Contains("CD"))       data.CD       = updated.CD;
-        if (!_blockedColumns.Contains("QapiR"))    data.QapiR    = updated.QapiR;
-        if (!_blockedColumns.Contains("SayKam"))   data.SayKam   = updated.SayKam;
-        if (!_blockedColumns.Contains("HDDV"))    data.HDDV    = updated.HDDV;
-        if (!_blockedColumns.Contains("HDDH"))    data.HDDH    = updated.HDDH;
-        if (!_blockedColumns.Contains("HDDSM"))    data.HDDSM    = updated.HDDSM;
-        if (!_blockedColumns.Contains("DVRV"))    data.DVRV    = updated.DVRV;
-        if (!_blockedColumns.Contains("Kam"))      data.Kam      = updated.Kam;
-        if (!_blockedColumns.Contains("KamV"))    data.KamV    = updated.KamV;
-        if (!_blockedColumns.Contains("KamNom"))   data.KamNom   = updated.KamNom;
-        if (!_blockedColumns.Contains("SalMon"))   data.SalMon   = updated.SalMon;
-        if (!_blockedColumns.Contains("DaySes"))   data.DaySes   = updated.DaySes;
-        if (!_blockedColumns.Contains("SurMik"))   data.SurMik   = updated.SurMik;
-        if (!_blockedColumns.Contains("Trafared")) data.Trafared = updated.Trafared;
-        if (!_blockedColumns.Contains("Qeyd"))     data.Qeyd     = updated.Qeyd;
+        if (!blockedColumnsList.Contains("SN"))       data.SN       = updated.SN;
+        if (!blockedColumnsList.Contains("DQN"))      data.DQN      = updated.DQN;
+        if (!blockedColumnsList.Contains("EyNom"))    data.EyNom    = updated.EyNom;
+        if (!blockedColumnsList.Contains("DVR"))      data.DVR      = updated.DVR;
+        if (!blockedColumnsList.Contains("CD"))       data.CD       = updated.CD;
+        if (!blockedColumnsList.Contains("QapiR"))    data.QapiR    = updated.QapiR;
+        if (!blockedColumnsList.Contains("SayKam"))   data.SayKam   = updated.SayKam;
+        if (!blockedColumnsList.Contains("HDDV"))     data.HDDV     = updated.HDDV;
+        if (!blockedColumnsList.Contains("HDDH"))     data.HDDH     = updated.HDDH;
+        if (!blockedColumnsList.Contains("HDDSM"))    data.HDDSM    = updated.HDDSM;
+        if (!blockedColumnsList.Contains("DVRV"))     data.DVRV     = updated.DVRV;
+        if (!blockedColumnsList.Contains("Kam"))      data.Kam      = updated.Kam;
+        if (!blockedColumnsList.Contains("KamV"))     data.KamV     = updated.KamV;
+        if (!blockedColumnsList.Contains("KamNom"))   data.KamNom   = updated.KamNom;
+        if (!blockedColumnsList.Contains("SalMon"))   data.SalMon   = updated.SalMon;
+        if (!blockedColumnsList.Contains("DaySes"))   data.DaySes   = updated.DaySes;
+        if (!blockedColumnsList.Contains("SurMik"))   data.SurMik   = updated.SurMik;
+        if (!blockedColumnsList.Contains("Trafared")) data.Trafared = updated.Trafared;
+        if (!blockedColumnsList.Contains("Qeyd"))     data.Qeyd     = updated.Qeyd;
 
         data.UpdatedTime = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(4), DateTimeKind.Utc);
         await _context.SaveChangesAsync(ct);
@@ -200,17 +169,42 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // GET api/depotdata/blocked-columns
     [HttpGet("blocked-columns")]
-    public IActionResult GetBlockedColumns() => Ok(_blockedColumns);
+    public async Task<IActionResult> GetBlockedColumns()
+    {
+        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+
+        return Ok(blockedColumns.Value);
+    }
 
     // POST api/depotdata/blocked-columns/{column}  — toggle
     [HttpPost("blocked-columns/{column}")]
-    public IActionResult ToggleBlock(string column)
+    public async Task<IActionResult> ToggleBlock(string column)
     {
         if (_blockedColumns.Contains(column))
             _blockedColumns.Remove(column);
         else
             _blockedColumns.Add(column);
-        return Ok(_blockedColumns);
+
+        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+
+        if (!blockedColumns.Value.Remove(column))
+            blockedColumns.Value.Add(column);
+        await _context.SaveChangesAsync();
+
+        return Ok(blockedColumns.Value);
+    }
+
+
+    // POST api/depotdata/block-row/{id}  — toggle
+    [HttpPost("block-row/{id}")]
+    public async Task<IActionResult> ToggleBlockRow(int id)
+    {
+        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
+
+        if (!blockedRows.Value.Remove(id.ToString()))
+            blockedRows.Value.Add(id.ToString());
+
+        return Ok(blockedRows.Value);
     }
 
 
@@ -228,42 +222,6 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         using var stream = file.OpenReadStream();
         using var package = new ExcelPackage(stream);
 
-        //var sheet = package.Workbook.Worksheets[0];
-        //int rows = sheet.Dimension?.Rows ?? 0;
-        //int cols = sheet.Dimension?.Columns ?? 0;
-
-        //if (rows < 2) return BadRequest("File is empty or has no data rows.");
-
-        //// First row = headers
-        //var headers = Enumerable.Range(1, cols)
-        //    .Select(c => sheet.Cells[1, c].Text?.Trim() ?? $"Column{c}")
-        //    .ToList();
-
-        //// Each data row becomes a dictionary of { header → value }
-        //var results = new List<Dictionary<string, string>>();
-
-        //for (int row = 2; row <= rows; row++)
-        //{
-        //    var dict = new Dictionary<string, string>();
-        //    bool isEmpty = true;
-
-        //    for (int col = 1; col <= cols; col++)
-        //    {
-        //        var val = sheet.Cells[row, col].Text?.Trim() ?? "";
-        //        dict[headers[col - 1]] = val;
-        //        if (!string.IsNullOrWhiteSpace(val)) isEmpty = false;
-        //    }
-
-        //    if (!isEmpty) results.Add(dict);
-        //}
-
-        // ── Map to DepotData and save to DB here ──
-        // foreach (var row in results)
-        // {
-        //     var item = new DepotData { DQN = row["YourColumnName"], ... };
-        //     _context.DepotDatas.Add(item);
-        // }
-        // await _context.SaveChangesAsync();
 
         var results = new List<DepotData>();
         int depotNum = depot ?? 0;
@@ -273,7 +231,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         {
             sheet = package.Workbook.Worksheets[depotNum-1];
         }
-        //var sheet = package.Workbook.Worksheets.Count(); // first sheet
+
         int rows = sheet.Dimension?.Rows ?? 0;
 
         if (rows < 2) return BadRequest("Excel file is empty or has no data rows.");
@@ -282,7 +240,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (int col = 1; col <= sheet.Dimension?.Columns; col++)
         {
-            var header = sheet.Cells[1, col].Text?.Trim();
+            var header = sheet.Cells[1, col].Text.Trim();
             if (!string.IsNullOrEmpty(header))
                 headers[header] = col;
         }
@@ -311,12 +269,12 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 CD = Get(row, "CD"),
                 QapiR = Get(row, "QapiR"),
                 SayKam = Get(row, "SayKam"),
-                HDDV = Get(row, "HDDSt"),
-                HDDH = Get(row, "HDDHc"),
-                HDDSM = Get(row, "HDDSM"),
-                DVRV = Get(row, "DVRSt"),
+                HDDV = Get(row, "HddV"),
+                HDDH = Get(row, "HddH"),
+                HDDSM = Get(row, "HddSM"),
+                DVRV = Get(row, "DvrV"),
                 Kam = Get(row, "Kam"),
-                KamV = Get(row, "KamSt"),
+                KamV = Get(row, "KamV"),
                 KamNom = Get(row, "KamNom"),
                 SalMon = Get(row, "SalMon"),
                 DaySes = Get(row, "DaySes"),
@@ -324,17 +282,68 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 Trafared = Get(row, "Trafared"),
                 Qeyd = Get(row, "Qeyd"),
                 Depot = depot,
+                //ConfirmerId = Get(row, "")
             };
 
             results.Add(item);
         }
 
-        // ── Do your DB save here ──────────────────────────────────
         await _context.DepotData.AddRangeAsync(results, ct);
         await _context.SaveChangesAsync(ct);
-        // ─────────────────────────────────────────────────────────
 
-        //return Ok(new { imported = results.Count, rows = results });
         return RedirectToAction("Index", "Home");
     }
+
+    [HttpPost("export")]
+public IActionResult Export([FromBody] List<DepotData> rows)
+{
+    ExcelPackage.License.SetNonCommercialPersonal("MyApp");
+
+    using var package = new ExcelPackage();
+    var sheet = package.Workbook.Worksheets.Add("DepotData");
+
+    // Excluded columns
+    var excluded = new HashSet<string> { "Id", "User", "IsDeleted", "IsConfirmed", "CreatedTime", "Depot", };
+
+    var props = typeof(DepotData).GetProperties()
+        .Where(p => !excluded.Contains(p.Name))
+        .ToList();
+
+    // ── Header row ────────────────────────────────────────────
+    for (int i = 0; i < props.Count; i++)
+    {
+        var cell = sheet.Cells[1, i + 1];
+        cell.Value = props[i].Name;
+
+        // Light blue background
+        cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+        cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(189, 215, 238));
+
+        // Bold text
+        cell.Style.Font.Bold = true;
+        cell.Style.Font.Size = 11;
+
+        // Center align
+        cell.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+        cell.Style.VerticalAlignment   = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+        // Border
+        cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
+        cell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.FromArgb(100, 149, 190));
+    }
+
+    // Make header row tall (≈ 3-4 normal rows)
+    sheet.Row(1).Height = 45;
+
+    // ── Data rows ─────────────────────────────────────────────
+    for (int r = 0; r < rows.Count; r++)
+        for (int c = 0; c < props.Count; c++)
+            sheet.Cells[r + 2, c + 1].Value = props[c].GetValue(rows[r])?.ToString() ?? "";
+
+    sheet.Cells[sheet.Dimension.Address].AutoFitColumns();
+
+    var bytes = package.GetAsByteArray();
+    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        $"DepotData_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+}
 }

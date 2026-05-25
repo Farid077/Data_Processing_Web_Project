@@ -46,6 +46,7 @@
 
             @foreach (var perm in @User.FindAll("Permission")){
                 var pageName = Enum.GetValues<Pages>().FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x).ToString();
+                pageName = (int.Parse(perm.Value) & (int)Pages.AllDepos) == (int)Pages.AllDepos ? Pages.AllDepos.ToString() : pageName;
 
                 @if (!string.IsNullOrWhiteSpace(pageName) && pageName != "0" && pageName.ToString()[0] == 'D')
                 {

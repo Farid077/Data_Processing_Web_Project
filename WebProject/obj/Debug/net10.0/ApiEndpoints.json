@@ -80,6 +80,22 @@
   },
   {
     "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "ToggleBlockRow",
+    "RelativePath": "api/DepotData/block-row/{id}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
     "Method": "GetBlockedColumns",
     "RelativePath": "api/DepotData/blocked-columns",
     "HttpMethod": "GET",
@@ -115,6 +131,22 @@
       {
         "Name": "id",
         "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "Export",
+    "RelativePath": "api/DepotData/export",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "rows",
+        "Type": "System.Collections.Generic.List\u00601[[WebProject.Models.DepotData, WebProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
       }
     ],

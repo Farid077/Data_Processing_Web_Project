@@ -10,6 +10,9 @@ namespace WebProject.DataAccess
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<DepotData> DepotData { get; set; }
+        public DbSet<OptionList> OptionLists { get; set; }
+        public DbSet<BlockList> BlockLists { get; set; }
+
         //public DbSet<Department> Departments { get; set; }
         //public DbSet<Issue> Issues { get; set; }
 

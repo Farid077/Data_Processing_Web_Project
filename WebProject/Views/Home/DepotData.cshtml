@@ -19,6 +19,7 @@
                 <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
             </label>
         </form>
+        <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
         <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
         <span class="row-count" id="row-count"></span>
     </div>
@@ -47,7 +48,7 @@ const API      = '/api/depotdata';
 const STATUSES = ['Pending', 'Done', 'Canceled'];
 
 const COLUMNS = [
-    // { key: 'id',            label: 'ID',        type: 'number', readOnly: true,  filterable: false, stickyLeft: true  },
+    // { key: 'id',         label: 'ID',        type: 'number', readOnly: true,  filterable: false, stickyLeft: true  },
     { key: 'sn',            label: 'SN',        type: 'number', filterable: true  },
     { key: 'dqn',           label: 'DQN',       type: 'text',   filterable: true  },
     { key: 'eyNom',         label: 'EyNom',     type: 'text',   filterable: true  },
@@ -55,20 +56,22 @@ const COLUMNS = [
     { key: 'cd',            label: 'CD',        type: 'enum',   filterable: true  },
     { key: 'qapiR',         label: 'QapiR',     type: 'enum',   filterable: true  },
     { key: 'sayKam',        label: 'SayKam',    type: 'enum',   filterable: true  },
-    { key: 'hddSt',         label: 'HDDSt',     type: 'enum',   filterable: true  },
-    { key: 'hddHc',         label: 'HDDHc',     type: 'enum',   filterable: true  },
+    { key: 'hddv',          label: 'HDDV',      type: 'enum',   filterable: true  },
+    { key: 'hddh',          label: 'HDDH',      type: 'enum',   filterable: true  },
     { key: 'hddsm',         label: 'HDDSM',     type: 'enum',   filterable: true  },
-    { key: 'dvrSt',         label: 'DVRSt',     type: 'enum',   filterable: true  },
+    { key: 'dvrv',          label: 'DVRV',      type: 'enum',   filterable: true  },
     { key: 'kam',           label: 'Kam',       type: 'combo',  filterable: true  },
-    { key: 'kamSt',         label: 'KamSt',     type: 'enum',   filterable: true  },
+    { key: 'kamV',          label: 'KamV',      type: 'enum',   filterable: true  },
     { key: 'kamNom',        label: 'KamNom',    type: 'enum',   filterable: true  },
     { key: 'salMon',        label: 'SalMon',    type: 'enum',   filterable: true  },
     { key: 'daySes',        label: 'DaySes',    type: 'enum',   filterable: true  },
     { key: 'surMik',        label: 'SurMik',    type: 'enum',   filterable: true  },
     { key: 'trafared',      label: 'Trafared',  type: 'enum',   filterable: true  },
-    { key: 'note',          label: 'Note',      type: 'text',   filterable: false },
-    { key: 'confirmedDate', label: 'Date',      type: 'date',   filterable: true  },
+    { key: 'qeyd',          label: 'Note',      type: 'text',   filterable: true  },
     { key: 'isConfirmed',   label: 'Confirmed', type: 'bool',   filterable: true  },
+    { key: 'confirmedDate', label: 'Last Confirmed',   type: 'date',  readOnly: true,  filterable: true  },
+    { key: 'updatedTime',   label: 'Last Updated',     type: 'date',  readOnly: true,  filterable: false },
+    { key: 'confirmerId',   label: 'Confirmer',        type: 'text',  readOnly: true,  filterable: true  },
 ];
 
 // ══════════════════════════════════════════════════════════════════════
@@ -109,6 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadData() {
     const res = await fetch(`${API}?depot=${@Model}`);
     allData = await res.json();
+    console.log(allData);
     renderTable();
 }
 
@@ -387,7 +391,7 @@ function buildDisplayRow(item) {
                 ? `<span style="color:var(--accent)">✔</span>`
                 : `<span style="color:var(--muted)">✗</span>`;
         } else if (col.type === 'date') {
-            td.textContent = v ? String(v).split('T')[0] : '';
+        td.textContent = v ? new Date(v).toISOString().replace('T', ' ').substring(0, 19) : '';
         } else {
             td.textContent = v;
         }
@@ -398,6 +402,8 @@ function buildDisplayRow(item) {
     const actTd = document.createElement('td');
     actTd.classList.add('col-sticky-right');
     actTd.innerHTML = `<div class="tbl-actions">
+        <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
+                title="Pin / unpin row" onclick="togglePinRow(${item.id})">🔒</button>
         <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
                 title="Pin / unpin row" onclick="togglePinRow(${item.id})">📌</button>
         <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
@@ -712,6 +718,52 @@ function showAlert(msg, type) {
     el.textContent = msg;
     clearTimeout(el._t);
     el._t = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+
+async function exportFiltered() {
+    // Get the currently visible rows using the same filter logic
+    const q = document.getElementById('global-search').value.toLowerCase();
+
+    let rows = allData.filter(r => {
+        if (q) {
+            const txt = COLUMNS.map(c => String(r[c.key] ?? '')).join(' ').toLowerCase();
+            if (!txt.includes(q)) return false;
+        }
+        for (const [k, v] of Object.entries(colFilters)) {
+            if (!v) continue;
+            if (k === 'isConfirmed') {
+                if (v === 'true'  && !r.isConfirmed) return false;
+                if (v === 'false' &&  r.isConfirmed) return false;
+            } else if (v instanceof Set && v.size > 0) {
+                if (!v.has(String(r[k] ?? ''))) return false;
+            }
+        }
+        if (dateFilters.length > 0) {
+            const d = r.confirmedDate ? r.confirmedDate.split('T')[0] : '';
+            if (!dateFilters.includes(d)) return false;
+        }
+        return true;
+    });
+
+    if (rows.length === 0) { showAlert('No rows to export.', 'warning'); return; }
+
+    const res = await fetch(`${API}/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(rows)
+    });
+
+    if (!res.ok) { showAlert('Export failed.', 'danger'); return; }
+
+    // Trigger download
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `DepotData_${new Date().toISOString().slice(0,10)}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
 }
 </script>
 }
