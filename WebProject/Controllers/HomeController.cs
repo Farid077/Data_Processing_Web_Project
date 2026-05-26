@@ -12,7 +12,7 @@ namespace WebProject.Controllers;
 
 //[AuthorizePermission((int)Pages.Dashboard, (int)PageAccess.Read)]
 [Authorize]
-public class HomeController(IExcelService _excelService, IExcelDataStore _dataStore) : Controller
+public class HomeController : Controller
 {
     [Authorize]
     public async Task<IActionResult> Index()
@@ -45,42 +45,43 @@ public class HomeController(IExcelService _excelService, IExcelDataStore _dataSt
         return View(new ErrorVM { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier, ErrorMessage = errorMessage ?? "Error!" });
     }
 
-    [HttpGet]
-    public IActionResult Export([FromQuery] GridRequest request)
-    {
-        var data = _dataStore.GetData();
-        if (data == null) return NotFound();
+    //[HttpGet]
+    //public IActionResult Export([FromQuery] GridRequest request)
+    //{
+    //    var data = _dataStore.GetData();
+    //    if (data == null) return NotFound();
 
-        // Apply same filters as GetData but no pagination
-        var rows = data.Rows.AsEnumerable();
+    //    // Apply same filters as GetData but no pagination
+    //    var rows = data.Rows.AsEnumerable();
 
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            var term = request.SearchTerm.ToLower();
-            rows = rows.Where(r => r.Cells.Values.Any(v => v.ToLower().Contains(term)));
-        }
+    //    if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+    //    {
+    //        var term = request.SearchTerm.ToLower();
+    //        rows = rows.Where(r => r.Cells.Values.Any(v => v.ToLower().Contains(term)));
+    //    }
 
-        foreach (var filter in request.ColumnFilters)
-        {
-            if (!string.IsNullOrWhiteSpace(filter.Value))
-            {
-                var col = filter.Key;
-                var val = filter.Value.ToLower();
-                rows = rows.Where(r => r.Cells.TryGetValue(col, out var cv) && cv.ToLower().Contains(val));
-            }
-        }
+    //    foreach (var filter in request.ColumnFilters)
+    //    {
+    //        if (!string.IsNullOrWhiteSpace(filter.Value))
+    //        {
+    //            var col = filter.Key;
+    //            var val = filter.Value.ToLower();
+    //            rows = rows.Where(r => r.Cells.TryGetValue(col, out var cv) && cv.ToLower().Contains(val));
+    //        }
+    //    }
 
-        if (!string.IsNullOrWhiteSpace(request.SortColumn))
-        {
-            rows = request.SortDirection == "desc"
-                ? rows.OrderByDescending(r => r.Cells.TryGetValue(request.SortColumn, out var v) ? v : "")
-                : rows.OrderBy(r => r.Cells.TryGetValue(request.SortColumn, out var v) ? v : "");
-        }
+    //    if (!string.IsNullOrWhiteSpace(request.SortColumn))
+    //    {
+    //        rows = request.SortDirection == "desc"
+    //            ? rows.OrderByDescending(r => r.Cells.TryGetValue(request.SortColumn, out var v) ? v : "")
+    //            : rows.OrderBy(r => r.Cells.TryGetValue(request.SortColumn, out var v) ? v : "");
+    //    }
 
-        var bytes = _excelService.Export(data, rows.ToList());
-        var fileName = $"export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-    }
+    //    var bytes = _excelService.Export(data, rows.ToList());
+    //    var fileName = $"export_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+    //    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    //}
+
 
     //public IActionResult Index()
     //{

@@ -1,13 +1,11 @@
-using DocumentFormat.OpenXml.Math;
-//using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using System.Security.Claims;
 using WebProject.Attributes;
 using WebProject.DataAccess;
-using WebProject.Migrations;
 using WebProject.Models;
+using WebProject.ViewModels;
 
 
 namespace WebProject.Controllers;
@@ -16,25 +14,110 @@ namespace WebProject.Controllers;
 [Route("api/[controller]")]
 public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 {
-    // ── Replace these two static stores with your DbContext ──────────────
-    //private static List<DepotData> _items = new()
-    //{
-    //    new DepotData { Id = 1, SN = 1, DQN = "DQN-001", EyNom = "Eye-1", DVR = "DVR-001", IsConfirmed = false },
-    //    new DepotData { Id = 2, SN = 2, DQN = "DQN-002", EyNom = "Eye-2", DVR = "DVR-002", IsConfirmed = true, ConfirmedDate = DateTime.Today },
-    //};
-
-    // Persisted blocked columns: set of column names
-    private static HashSet<string> _blockedColumns = new();
-    // ─────────────────────────────────────────────────────────────────────
-
     // GET api/depotdata
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
     {
-        if (depot == null)
-            return Ok(await _context.DepotData.Where(x => !x.IsDeleted).ToListAsync(ct));
+        IList<DepotManagementVM> data;
 
-        return Ok(await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct));
+        if (depot == null)
+        {
+            data = await _context.DepotData
+            .Where(x => !x.IsDeleted)
+            .Select(x =>
+            new DepotManagementVM
+            {
+                Id = x.Id,
+                SN = x.SN,
+                DQN = x.DQN,
+                DVR = x.DVR,
+                DVRV = x.DVRV,
+                CD = x.CD,
+                EyNom = x.EyNom,
+                HDDH = x.HDDH,
+                HDDV = x.HDDV,
+                HDDSM = x.HDDSM,
+                DaySes = x.DaySes,
+                SalMon = x.SalMon,
+                SurMik = x.SurMik,
+                SayKam = x.SayKam,
+                Kam = x.Kam,
+                KamV = x.KamV,
+                KamNom = x.KamNom,
+                Depot = x.Depot,
+                QapiR = x.QapiR,
+                Qeyd = x.Qeyd,
+                ConfirmedDate = x.ConfirmedDate,
+                IsConfirmed = x.IsConfirmed,
+                ConfirmerId = x.ConfirmerId,
+                Trafared = x.Trafared,
+                UpdatedTime = x.UpdatedTime,
+            })
+            .ToListAsync(ct);
+        }
+        else
+        {
+            data = await _context.DepotData
+                .Where(x => !x.IsDeleted && x.Depot == depot)
+                .Select(x =>
+                new DepotManagementVM
+                {
+                    Id = x.Id,
+                    SN = x.SN,
+                    DQN = x.DQN,
+                    DVR = x.DVR,
+                    DVRV = x.DVRV,
+                    CD = x.CD,
+                    EyNom = x.EyNom,
+                    HDDH = x.HDDH,
+                    HDDV = x.HDDV,
+                    HDDSM = x.HDDSM,
+                    DaySes = x.DaySes,
+                    SalMon = x.SalMon,
+                    SurMik = x.SurMik,
+                    SayKam = x.SayKam,
+                    Kam = x.Kam,
+                    KamV = x.KamV,
+                    KamNom = x.KamNom,
+                    Depot = x.Depot,
+                    QapiR = x.QapiR,
+                    Qeyd = x.Qeyd,
+                    ConfirmedDate = x.ConfirmedDate,
+                    IsConfirmed = x.IsConfirmed,
+                    ConfirmerId = x.ConfirmerId,
+                    Trafared = x.Trafared,
+                    UpdatedTime = x.UpdatedTime,
+                })
+                .ToListAsync(ct);
+        }
+
+        var optionLists = await _context.OptionLists.ToListAsync(ct);
+
+        await Task.WhenAll(
+            data.Select(async x => 
+            x.OptionLists = new OptionListsVM
+            {
+                CDOptions = optionLists.Find(x => x.Key == "CDOptions")?.Value,
+                QapiROptions = optionLists.Find(x => x.Key == "QapiROptions")?.Value,
+                SayKamOptions = optionLists.Find(x => x.Key == "SayKamOptions")?.Value,
+                HDDVOptions = optionLists.Find(x => x.Key == "HDDVOptions")?.Value,
+                HDDHOptions = optionLists.Find(x => x.Key == "HDDHOptions")?.Value,
+                HDDSMOptions = optionLists.Find(x => x.Key == "HDDSMOptions")?.Value,
+                DVRVOptions = optionLists.Find(x => x.Key == "DVRVOptions")?.Value,
+                KamOptions = optionLists.Find(x => x.Key == "KamOptions")?.Value,
+                KamVOptions = optionLists.Find(x => x.Key == "KamVOptions")?.Value,
+                KamNomOptions = optionLists.Find(x => x.Key == "KamNomOptions")?.Value,
+                SalMonOptions = optionLists.Find(x => x.Key == "SalMonOptions")?.Value,
+                DaySesOptions = optionLists.Find(x => x.Key == "DaySesOptions")?.Value,
+                SurMikOptions = optionLists.Find(x => x.Key == "SurMikOptions")?.Value,
+                TrafaredOptions = optionLists.Find(x => x.Key == "TrafaredOptions")?.Value,
+                DepotOptions = [1, 2, 3, 4, 5],
+            }
+        ));
+
+        //var data = await _context.DepotData.Where(x => !x.IsDeleted && x.Depot == depot).ToListAsync(ct);
+
+        return Ok(data);
     }
 
     // POST api/depotdata
@@ -180,20 +263,24 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     [HttpPost("blocked-columns/{column}")]
     public async Task<IActionResult> ToggleBlock(string column)
     {
-        if (_blockedColumns.Contains(column))
-            _blockedColumns.Remove(column);
-        else
-            _blockedColumns.Add(column);
-
         var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
 
         if (!blockedColumns.Value.Remove(column))
             blockedColumns.Value.Add(column);
+
         await _context.SaveChangesAsync();
 
         return Ok(blockedColumns.Value);
     }
 
+    // GET api/depotdata/blocked-rows
+    [HttpGet("blocked-rows")]
+    public async Task<IActionResult> GetBlockedRows()
+    {
+        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows")
+            ?? throw new Exception("Blocked rows list is not found.");
+        return Ok(blockedRows.Value);
+    }
 
     // POST api/depotdata/block-row/{id}  — toggle
     [HttpPost("block-row/{id}")]
@@ -204,7 +291,48 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         if (!blockedRows.Value.Remove(id.ToString()))
             blockedRows.Value.Add(id.ToString());
 
+        await _context.SaveChangesAsync();
+
         return Ok(blockedRows.Value);
+    }
+
+
+    // GET api/depotdata/options  — returns all option lists as { "CDOptions": ["v1","v2"], ... }
+    [HttpGet("options")]
+    public async Task<IActionResult> GetOptions(CancellationToken ct = default)
+    {
+        var options = await _context.OptionLists.ToListAsync(ct);
+        return Ok(options.ToDictionary(o => o.Key, o => o.Value));
+    }
+
+    // POST api/depotdata/options/{key}  — add a value to an option list
+    [HttpPost("options/{key}")]
+    public async Task<IActionResult> AddOption(string key, [FromBody] string value, CancellationToken ct = default)
+    {
+        var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
+        if (list == null) return NotFound($"Option list '{key}' not found.");
+
+        value = value?.Trim() ?? "";
+        if (string.IsNullOrEmpty(value)) return BadRequest("Value cannot be empty.");
+
+        if (!list.Value.Contains(value))
+        {
+            list.Value.Add(value);
+            await _context.SaveChangesAsync(ct);
+        }
+        return Ok(list.Value);
+    }
+
+    // DELETE api/depotdata/options/{key}/{value}  — remove a value from an option list
+    [HttpDelete("options/{key}/{value}")]
+    public async Task<IActionResult> RemoveOption(string key, string value, CancellationToken ct = default)
+    {
+        var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
+        if (list == null) return NotFound($"Option list '{key}' not found.");
+
+        list.Value.Remove(value);
+        await _context.SaveChangesAsync(ct);
+        return Ok(list.Value);
     }
 
 
@@ -317,7 +445,7 @@ public IActionResult Export([FromBody] List<DepotData> rows)
 
         // Light blue background
         cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-        cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(189, 215, 238));
+        cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(100, 149, 190));
 
         // Bold text
         cell.Style.Font.Bold = true;
@@ -328,8 +456,12 @@ public IActionResult Export([FromBody] List<DepotData> rows)
         cell.Style.VerticalAlignment   = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
 
         // Border
-        cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Medium;
-        cell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.FromArgb(100, 149, 190));
+        cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+        cell.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+        cell.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+        cell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+        cell.Style.Border.Left.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+        cell.Style.Border.Right.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
     }
 
     // Make header row tall (≈ 3-4 normal rows)

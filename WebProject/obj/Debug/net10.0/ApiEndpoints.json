@@ -122,6 +122,16 @@
   },
   {
     "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "GetBlockedRows",
+    "RelativePath": "api/DepotData/blocked-rows",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
     "Method": "Confirm",
     "RelativePath": "api/DepotData/Confirm/{id}",
     "HttpMethod": "POST",
@@ -169,6 +179,58 @@
         "Name": "file",
         "Type": "Microsoft.AspNetCore.Http.IFormFile",
         "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "GetOptions",
+    "RelativePath": "api/DepotData/options",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "AddOption",
+    "RelativePath": "api/DepotData/options/{key}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "key",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "value",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WebProject.Controllers.DepotDataController",
+    "Method": "RemoveOption",
+    "RelativePath": "api/DepotData/options/{key}/{value}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "key",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "value",
+        "Type": "System.String",
+        "IsRequired": true
       }
     ],
     "ReturnTypes": []

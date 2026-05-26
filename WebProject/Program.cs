@@ -91,22 +91,37 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    if (!await db.BlockLists.AnyAsync(b => b.Key == "Columns"))
+    // ── BlockLists ────────────────────────────────────────────────────────
+    var blockKeys = new[] { "Columns", "Rows" };
+    foreach (var key in blockKeys)
     {
-        await db.BlockLists.AddAsync(new BlockList
-        {
-            Key = "Columns",
-            Value = []
-        });
+        if (!await db.BlockLists.AnyAsync(b => b.Key == key))
+            await db.BlockLists.AddAsync(new BlockList { Key = key, Value = [] });
     }
 
-    if (!await db.BlockLists.AnyAsync(b => b.Key == "Rows"))
+    // ── OptionLists ───────────────────────────────────────────────────────
+    var optionSeed = new Dictionary<string, List<string>>
     {
-        await db.BlockLists.AddAsync(new BlockList
-        {
-            Key = "Rows",
-            Value = []
-        });
+        ["CDOptions"] = [],
+        ["QapiROptions"] = [],
+        ["SayKamOptions"] = [],
+        ["HDDVOptions"] = [],
+        ["HDDHOptions"] = [],
+        ["HDDSMOptions"] = [],
+        ["DVRVOptions"] = [],
+        ["KamOptions"] = [],
+        ["KamVOptions"] = [],
+        ["KamNomOptions"] = [],
+        ["SalMonOptions"] = [],
+        ["DaySesOptions"] = [],
+        ["SurMikOptions"] = [],
+        ["TrafaredOptions"] = [],
+    };
+
+    foreach (var (key, defaultValues) in optionSeed)
+    {
+        if (!await db.OptionLists.AnyAsync(o => o.Key == key))
+            await db.OptionLists.AddAsync(new OptionList { Key = key, Value = [.. defaultValues] });
     }
 
     await db.SaveChangesAsync();

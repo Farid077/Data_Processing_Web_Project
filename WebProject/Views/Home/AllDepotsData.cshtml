@@ -55,21 +55,23 @@
             { key: 'cd', label: 'CD', type: 'enum', filterable: true },
             { key: 'qapiR', label: 'QapiR', type: 'enum', filterable: true },
             { key: 'sayKam', label: 'SayKam', type: 'enum', filterable: true },
-            { key: 'hddSt', label: 'HDDSt', type: 'enum', filterable: true },
-            { key: 'hddHc', label: 'HDDHc', type: 'enum', filterable: true },
+            { key: 'hddv', label: 'HDDV', type: 'enum', filterable: true },
+            { key: 'hddh', label: 'HDDH', type: 'enum', filterable: true },
             { key: 'hddsm', label: 'HDDSM', type: 'enum', filterable: true },
-            { key: 'dvrSt', label: 'DVRSt', type: 'enum', filterable: true },
+            { key: 'dvrv', label: 'DVRV', type: 'enum', filterable: true },
             { key: 'kam', label: 'Kam', type: 'combo', filterable: true },
-            { key: 'kamSt', label: 'KamSt', type: 'enum', filterable: true },
+            { key: 'kamV', label: 'KamV', type: 'enum', filterable: true },
             { key: 'kamNom', label: 'KamNom', type: 'enum', filterable: true },
             { key: 'salMon', label: 'SalMon', type: 'enum', filterable: true },
             { key: 'daySes', label: 'DaySes', type: 'enum', filterable: true },
             { key: 'surMik', label: 'SurMik', type: 'enum', filterable: true },
             { key: 'trafared', label: 'Trafared', type: 'enum', filterable: true },
-            { key: 'note', label: 'Note', type: 'text', filterable: false },
-            { key: 'confirmedDate', label: 'Date', type: 'date', filterable: true },
-            { key: 'isConfirmed', label: 'Confirmed', type: 'bool', filterable: true },
+            { key: 'qeyd', label: 'Qeyd', type: 'text', filterable: false },
             { key: 'depot', label: 'Depo', type: 'enum', filterable: true },
+            { key: 'isConfirmed', label: 'Confirmed', type: 'bool', filterable: true },
+            { key: 'confirmedDate', label: 'Last Confirmed', type: 'date', filterable: true },
+            { key: 'updatedTime', label: 'Last Updated', type: 'date', readOnly: true, filterable: false },
+            { key: 'confirmerId', label: 'Confirmer', type: 'text', readOnly: true, filterable: true },
         ];
 
         // ══════════════════════════════════════════════════════════════════════
@@ -400,6 +402,8 @@
             actTd.classList.add('col-sticky-right');
             actTd.innerHTML = `<div class="tbl-actions">
                 <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
+                        title="Pin / unpin row" onclick="togglePinRow(${item.id})">🔒</button>
+                <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
                         title="Pin / unpin row" onclick="togglePinRow(${item.id})">📌</button>
                 <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
                 <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
@@ -422,9 +426,7 @@
                 if (col.readOnly || blockedCols.has(col.key)) return;
                 const td = tds[i];
                 const v = item[col.key] ?? '';
-                if (col.type === 'bool') {
-                    td.innerHTML = ``;
-                }
+                if (col.type === 'bool');
                 // td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`; }
                 else if (col.type === 'date') {
                     td.innerHTML = `<input type="date" data-key="${col.key}" value="${v ? String(v).split('T')[0] : ''}">`;

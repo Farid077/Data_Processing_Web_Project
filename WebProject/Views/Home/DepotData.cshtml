@@ -7,19 +7,22 @@
 
 <div class="depot-page">
     <div class="depot-toolbar">
-        @* <button class="btn-accent" onclick="addNewRow()">+ New Row</button> *@
+        <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
         <div class="depot-search-wrap">
             <span class="search-icon">⌕</span>
             <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
         </div>
-        <form id="import-form" asp-action="Import" asp-controller="DepotData" asp-route-depot="@Model" method="post" enctype="multipart/form-data" style="display:flex;align-items:center;gap:8px;">
+        <form id="import-form" asp-action="Import" asp-controller="DepotData"
+              asp-route-depot="@Model" method="post" enctype="multipart/form-data"
+              style="display:flex;align-items:center;gap:8px;">
             @Html.AntiForgeryToken()
             <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-                ⬆ Import Excel Depo @Model
+                ⬆ Import Excel
                 <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
             </label>
         </form>
         <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
+        <button class="btn-ghost" onclick="openOptionsManager()">⚙ Options</button>
         <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
         <span class="row-count" id="row-count"></span>
     </div>
@@ -44,47 +47,51 @@
 // ══════════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════════
-const API      = '/api/depotdata';
-const STATUSES = ['Pending', 'Done', 'Canceled'];
+const API = '/api/depotdata';
 
+// COLUMNS — type: 'text'|'number'|'enum'|'combo'|'bool'|'date'
+// optionsKey  : key in OPTIONS dict  (for enum / combo)
+// dateFilter  : true → multi-date picker filter
+// readOnly    : not editable
 const COLUMNS = [
-    // { key: 'id',         label: 'ID',        type: 'number', readOnly: true,  filterable: false, stickyLeft: true  },
-    { key: 'sn',            label: 'SN',        type: 'number', filterable: true  },
-    { key: 'dqn',           label: 'DQN',       type: 'text',   filterable: true  },
-    { key: 'eyNom',         label: 'EyNom',     type: 'text',   filterable: true  },
-    { key: 'dvr',           label: 'DVR',       type: 'text',   filterable: true  },
-    { key: 'cd',            label: 'CD',        type: 'enum',   filterable: true  },
-    { key: 'qapiR',         label: 'QapiR',     type: 'enum',   filterable: true  },
-    { key: 'sayKam',        label: 'SayKam',    type: 'enum',   filterable: true  },
-    { key: 'hddv',          label: 'HDDV',      type: 'enum',   filterable: true  },
-    { key: 'hddh',          label: 'HDDH',      type: 'enum',   filterable: true  },
-    { key: 'hddsm',         label: 'HDDSM',     type: 'enum',   filterable: true  },
-    { key: 'dvrv',          label: 'DVRV',      type: 'enum',   filterable: true  },
-    { key: 'kam',           label: 'Kam',       type: 'combo',  filterable: true  },
-    { key: 'kamV',          label: 'KamV',      type: 'enum',   filterable: true  },
-    { key: 'kamNom',        label: 'KamNom',    type: 'enum',   filterable: true  },
-    { key: 'salMon',        label: 'SalMon',    type: 'enum',   filterable: true  },
-    { key: 'daySes',        label: 'DaySes',    type: 'enum',   filterable: true  },
-    { key: 'surMik',        label: 'SurMik',    type: 'enum',   filterable: true  },
-    { key: 'trafared',      label: 'Trafared',  type: 'enum',   filterable: true  },
-    { key: 'qeyd',          label: 'Note',      type: 'text',   filterable: true  },
-    { key: 'isConfirmed',   label: 'Confirmed', type: 'bool',   filterable: true  },
-    { key: 'confirmedDate', label: 'Last Confirmed',   type: 'date',  readOnly: true,  filterable: true  },
-    { key: 'updatedTime',   label: 'Last Updated',     type: 'date',  readOnly: true,  filterable: false },
-    { key: 'confirmerId',   label: 'Confirmer',        type: 'text',  readOnly: true,  filterable: true  },
+    { key: 'sn',            label: 'SN',             type: 'number', filterable: true  },
+    { key: 'dqn',           label: 'DQN',            type: 'text',   filterable: true  },
+    { key: 'eyNom',         label: 'Eyniləşdirmə N.',          type: 'text',   filterable: true  },
+    { key: 'dvr',           label: 'DVR Versiya',            type: 'text',   filterable: true  },
+    { key: 'cd',            label: 'Connect Disconnect',             type: 'enum',   filterable: true,  optionsKey: 'CDOptions'      },
+    { key: 'qapiR',         label: 'Qapi və R',          type: 'enum',   filterable: true,  optionsKey: 'QapiROptions'   },
+    { key: 'sayKam',        label: 'Sayım Kameraları',         type: 'enum',   filterable: true,  optionsKey: 'SayKamOptions'  },
+    { key: 'hddv',          label: 'HDD Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'HDDVOptions'    },
+    { key: 'hddh',          label: 'HDD Həcmi',           type: 'enum',   filterable: true,  optionsKey: 'HDDHOptions'    },
+    { key: 'hddsm',         label: 'HDD Saxlama Müddəti',          type: 'enum',   filterable: true,  optionsKey: 'HDDSMOptions'   },
+    { key: 'dvrv',          label: 'DVR Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'DVRVOptions'    },
+    { key: 'kam',           label: 'Kamera',            type: 'combo',  filterable: true,  optionsKey: 'KamOptions'     },
+    { key: 'kamV',          label: 'Kamera Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'KamVOptions'    },
+    { key: 'kamNom',        label: 'Kamera Nömrəsi',         type: 'enum',   filterable: true,  optionsKey: 'KamNomOptions'  },
+    { key: 'salMon',        label: 'Salon Monitoru',         type: 'enum',   filterable: true,  optionsKey: 'SalMonOptions'  },
+    { key: 'daySes',        label: 'Dayanacaq Səsləndirməsi',         type: 'enum',   filterable: true,  optionsKey: 'DaySesOptions'  },
+    { key: 'surMik',        label: 'Sürücü Mikrofonu',         type: 'enum',   filterable: true,  optionsKey: 'SurMikOptions'  },
+    { key: 'trafared',      label: 'Trafared',       type: 'enum',   filterable: true,  optionsKey: 'TrafaredOptions'},
+    { key: 'qeyd',          label: 'Qeyd',           type: 'text',   filterable: true  },
+    { key: 'isConfirmed',   label: 'Təsdiqlənib',    type: 'bool',   filterable: true  },
+    { key: 'confirmedDate', label: 'Təsdiqlənmə',    type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
+    { key: 'updatedTime',   label: 'Yenilənmə',      type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
+    { key: 'confirmerId',   label: 'Təsdiqləyən',    type: 'text',   readOnly: true,    filterable: true  },
 ];
 
 // ══════════════════════════════════════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════════════════════════════════════
-let allData      = [];
-let blockedCols  = new Set();
-let pinnedColKeys = [];          // user-pinned cols (ordered, left-sticky)
-let pinnedRowIds  = new Set();   // user-pinned rows (float to top)
-let sortKey      = null;
-let sortDir      = 'asc';
-let colFilters   = {};           // colKey → Set of selected values
-let dateFilters  = [];           // array of 'YYYY-MM-DD'
+let allData       = [];
+let OPTIONS       = {};           // { 'CDOptions': ['v1','v2'], ... }
+let blockedCols   = new Set();
+let blockedRowIds = new Set();
+let pinnedColKeys = [];
+let pinnedRowIds  = new Set();
+let sortKey       = null;
+let sortDir       = 'asc';
+let colFilters    = {};           // colKey → Set | string
+let dateFiltersMap = {};          // colKey → string[]  (generic, supports all date cols)
 let _fddPanel     = null;
 let _fddActiveCol = null;
 let _fddActiveBtn = null;
@@ -93,26 +100,26 @@ let _fddActiveBtn = null;
 //  INIT
 // ══════════════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadBlocked();
-    buildHeaders();
-    buildFilterRow();
+    // Global filter dropdown panel
     _fddPanel = document.createElement('div');
     _fddPanel.className = 'fdd-panel';
     _fddPanel.id = 'fdd-global-panel';
     _fddPanel.hidden = true;
     document.body.appendChild(_fddPanel);
+
+    await Promise.all([loadBlocked(), loadBlockedRows(), loadOptions()]);
+    buildHeaders();
+    buildFilterRow();
     await loadData();
 
-    // Close filter dropdowns when clicking outside
     document.addEventListener('click', e => {
-        if (!e.target.closest('.fdd-panel')) closeAllDropdowns();
+        if (!e.target.closest('.fdd-panel') && !e.target.closest('.fdd')) closeAllDropdowns();
     });
 });
 
 async function loadData() {
-    const res = await fetch(`${API}?depot=${@Model}`);
+    const res = await fetch(`${API}?depot=@Model`);
     allData = await res.json();
-    console.log(allData);
     renderTable();
 }
 
@@ -121,12 +128,25 @@ async function loadBlocked() {
     blockedCols = new Set(await res.json());
 }
 
+async function loadBlockedRows() {
+    const res = await fetch(`${API}/blocked-rows`);
+    blockedRowIds = new Set((await res.json()).map(String));
+}
+
+async function loadOptions() {
+    const res = await fetch(`${API}/options`);
+    OPTIONS = await res.json();
+}
+
+function getOpts(col) {
+    return col.optionsKey ? (OPTIONS[col.optionsKey] || []) : [];
+}
+
 // ══════════════════════════════════════════════════════════════════════
 //  HEADERS
 // ══════════════════════════════════════════════════════════════════════
 function buildHeaders() {
     const tr = document.getElementById('header-row');
-
     COLUMNS.forEach(col => {
         const th = document.createElement('th');
         th.dataset.key = col.key;
@@ -136,10 +156,9 @@ function buildHeaders() {
         th.classList.add('sortable');
         th.addEventListener('click', e => {
             if (e.target.closest('button')) return;
-            sortKey = sortKey === col.key && sortDir === 'asc'
-                ? (sortDir = 'desc', col.key) : (sortDir = 'asc', col.key);
-            updateSortIndicators();
-            renderTable();
+            if (sortKey === col.key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            else { sortKey = col.key; sortDir = 'asc'; }
+            updateSortIndicators(); renderTable();
         });
 
         const label = document.createElement('span');
@@ -147,33 +166,30 @@ function buildHeaders() {
         label.textContent = col.label;
         th.appendChild(label);
 
-        if (col.key !== 'id') {
-            // Block button
-            const blockBtn = document.createElement('button');
-            blockBtn.className = 'col-block-btn' + (blockedCols.has(col.key) ? ' active' : '');
-            blockBtn.title = 'Block / unblock editing';
-            blockBtn.textContent = '🔒';
-            blockBtn.onclick = e => { e.stopPropagation(); toggleBlock(col.key); };
-            th.appendChild(blockBtn);
+        // Block col button
+        const blockBtn = document.createElement('button');
+        blockBtn.className = 'col-block-btn' + (blockedCols.has(col.key) ? ' active' : '');
+        blockBtn.title = 'Sütunu kilidlə / aç';
+        blockBtn.textContent = '🔒';
+        blockBtn.onclick = e => { e.stopPropagation(); toggleBlock(col.key); };
+        th.appendChild(blockBtn);
 
-            // Pin button
-            const pinBtn = document.createElement('button');
-            pinBtn.className = 'col-pin-btn' + (pinnedColKeys.includes(col.key) ? ' active' : '');
-            pinBtn.title = 'Pin / unpin column (sticky left)';
-            pinBtn.textContent = '📌';
-            pinBtn.dataset.pinKey = col.key;
-            pinBtn.onclick = e => { e.stopPropagation(); togglePinCol(col.key); };
-            th.appendChild(pinBtn);
-        }
+        // Pin col button
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'col-pin-btn' + (pinnedColKeys.includes(col.key) ? ' active' : '');
+        pinBtn.title = 'Sütunu sabit et / aç';
+        pinBtn.textContent = '📌';
+        pinBtn.dataset.pinKey = col.key;
+        pinBtn.onclick = e => { e.stopPropagation(); togglePinCol(col.key); };
+        th.appendChild(pinBtn);
 
         tr.appendChild(th);
     });
 
-    // Actions column header
     const actTh = document.createElement('th');
     actTh.classList.add('col-sticky-right');
     actTh.dataset.key = '__actions';
-    actTh.textContent = 'Actions';
+    actTh.textContent = 'Əməliyyatlar';
     tr.appendChild(actTh);
 }
 
@@ -186,11 +202,10 @@ function updateSortIndicators() {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-//  FILTER ROW  — custom dropdowns
+//  FILTER ROW
 // ══════════════════════════════════════════════════════════════════════
 function buildFilterRow() {
     const tr = document.getElementById('filter-row');
-
     COLUMNS.forEach(col => {
         const th = document.createElement('th');
         th.dataset.filterKey = col.key;
@@ -199,71 +214,79 @@ function buildFilterRow() {
         if (!col.filterable) { tr.appendChild(th); return; }
 
         if (col.key === 'isConfirmed') {
-            // Simple 3-state select
             const sel = document.createElement('select');
-            sel.innerHTML = `<option value="">All</option>
-                             <option value="true">✔ Yes</option>
-                             <option value="false">✗ No</option>`;
+            sel.innerHTML = `<option value="">Hamısı</option>
+                             <option value="true">✔ Bəli</option>
+                             <option value="false">✗ Xeyr</option>`;
             sel.onchange = () => { colFilters[col.key] = sel.value || null; renderTable(); };
             th.appendChild(sel);
 
-        } else if (col.key === 'confirmedDate') {
+        } else if (col.dateFilter) {
+            // Generic multi-date picker for any date column
             const wrap = document.createElement('div');
             const inp  = document.createElement('input');
             inp.type = 'date';
             inp.onchange = () => {
-                if (!inp.value || dateFilters.includes(inp.value)) { inp.value = ''; return; }
-                dateFilters.push(inp.value); inp.value = '';
-                renderDateTags(); renderTable();
+                if (!inp.value) return;
+                if (!dateFiltersMap[col.key]) dateFiltersMap[col.key] = [];
+                if (!dateFiltersMap[col.key].includes(inp.value)) {
+                    dateFiltersMap[col.key].push(inp.value);
+                    renderDateTags(col.key);
+                    renderTable();
+                }
+                inp.value = '';
             };
             const tags = document.createElement('div');
-            tags.id = 'date-tags';
+            tags.id = `date-tags-${col.key}`;
             wrap.appendChild(inp); wrap.appendChild(tags);
             th.appendChild(wrap);
 
         } else {
-            // Custom multi-select dropdown
             const wrap = document.createElement('div');
             wrap.className = 'fdd';
             wrap.dataset.col = col.key;
-
             const btn = document.createElement('button');
             btn.className = 'fdd-btn';
-            btn.innerHTML = `<span class="fdd-label">All</span><span class="fdd-arrow">▾</span>`;
+            btn.innerHTML = `<span class="fdd-label">Hamısı</span><span class="fdd-arrow">▾</span>`;
             btn.onclick = e => { e.stopPropagation(); toggleDropdown(wrap); };
-
-            const panel = document.createElement('div');
-            panel.className = 'fdd-panel';
-            panel.hidden = true;
-
             wrap.appendChild(btn);
-            wrap.appendChild(panel);
             th.appendChild(wrap);
         }
 
         tr.appendChild(th);
     });
 
-    // Empty cell for Actions
     const actTh = document.createElement('th');
     actTh.classList.add('col-sticky-right');
     tr.appendChild(actTh);
 }
 
+// ── Date tag helpers ─────────────────────────────────────────────────
+function renderDateTags(colKey) {
+    const c = document.getElementById(`date-tags-${colKey}`);
+    if (!c) return;
+    c.innerHTML = '';
+    (dateFiltersMap[colKey] || []).forEach(d => {
+        const tag = document.createElement('span');
+        tag.className = 'date-tag';
+        tag.innerHTML = `${d} <button onclick="removeDateFilter('${colKey}','${d}')">×</button>`;
+        c.appendChild(tag);
+    });
+}
+function removeDateFilter(colKey, d) {
+    dateFiltersMap[colKey] = (dateFiltersMap[colKey] || []).filter(x => x !== d);
+    renderDateTags(colKey); renderTable();
+}
+
+// ── Custom multi-select dropdown ─────────────────────────────────────
 function toggleDropdown(wrap) {
     const colKey = wrap.dataset.col;
     const btn    = wrap.querySelector('.fdd-btn');
-
-    // Toggle off if already open for this col
-    if (_fddActiveCol === colKey && !_fddPanel.hidden) {
-        closeAllDropdowns(); return;
-    }
-
+    if (_fddActiveCol === colKey && !_fddPanel.hidden) { closeAllDropdowns(); return; }
     closeAllDropdowns();
     _fddActiveCol = colKey;
     _fddActiveBtn = btn;
 
-    // Populate checkboxes
     const currentFilter = colFilters[colKey];
     const uniq = [...new Set(allData.map(r => String(r[colKey] ?? '')))].sort();
     _fddPanel.innerHTML = '';
@@ -275,15 +298,14 @@ function toggleDropdown(wrap) {
         chk.checked = currentFilter instanceof Set && currentFilter.has(v);
         chk.onchange = () => updateDropdownFilter(colKey, btn);
         lbl.appendChild(chk);
-        lbl.appendChild(document.createTextNode(v === '' ? '(empty)' : v));
+        lbl.appendChild(document.createTextNode(v === '' ? '(boş)' : v));
         _fddPanel.appendChild(lbl);
     });
 
-    // Position relative to viewport (Fix 2)
     const rect = btn.getBoundingClientRect();
     _fddPanel.style.top      = (rect.bottom + 4) + 'px';
     _fddPanel.style.left     = rect.left + 'px';
-    _fddPanel.style.minWidth = Math.max(rect.width, 100) + 'px';
+    _fddPanel.style.minWidth = Math.max(rect.width, 120) + 'px';
     _fddPanel.hidden = false;
 }
 
@@ -292,36 +314,21 @@ function updateDropdownFilter(colKey, btn) {
     const label   = btn.querySelector('.fdd-label');
     if (checked.length === 0) {
         colFilters[colKey] = null;
-        label.textContent  = 'All';
+        label.textContent  = 'Hamısı';
         btn.classList.remove('has-filter');
     } else {
         colFilters[colKey] = new Set(checked);
-        label.textContent  = checked.length === 1 ? checked[0] : `${checked.length} selected`;
+        label.textContent  = checked.length === 1 ? checked[0] : `${checked.length} seçildi`;
         btn.classList.add('has-filter');
     }
-    renderTable();
+    // Don't close — user may want to select more
 }
 
 function closeAllDropdowns() {
-    _fddPanel.hidden  = true;
+    if (!_fddPanel.hidden) renderTable();
+    _fddPanel.hidden = true;
     _fddActiveCol = null;
     _fddActiveBtn = null;
-}
-
-function renderDateTags() {
-    const c = document.getElementById('date-tags');
-    if (!c) return;
-    c.innerHTML = '';
-    dateFilters.forEach(d => {
-        const tag = document.createElement('span');
-        tag.className = 'date-tag';
-        tag.innerHTML = `${d} <button onclick="removeDateFilter('${d}')">×</button>`;
-        c.appendChild(tag);
-    });
-}
-function removeDateFilter(d) {
-    dateFilters = dateFilters.filter(x => x !== d);
-    renderDateTags(); renderTable();
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -331,10 +338,12 @@ function renderTable() {
     const q = document.getElementById('global-search').value.toLowerCase();
 
     let rows = allData.filter(r => {
+        // Global search
         if (q) {
             const txt = COLUMNS.map(c => String(r[c.key] ?? '')).join(' ').toLowerCase();
             if (!txt.includes(q)) return false;
         }
+        // Column filters
         for (const [k, v] of Object.entries(colFilters)) {
             if (!v) continue;
             if (k === 'isConfirmed') {
@@ -344,9 +353,12 @@ function renderTable() {
                 if (!v.has(String(r[k] ?? ''))) return false;
             }
         }
-        if (dateFilters.length > 0) {
-            const d = r.confirmedDate ? r.confirmedDate.split('T')[0] : '';
-            if (!dateFilters.includes(d)) return false;
+        // Date filters (generic — works for any column with dateFilter:true)
+        for (const col of COLUMNS.filter(c => c.dateFilter)) {
+            const filters = dateFiltersMap[col.key];
+            if (!filters || filters.length === 0) continue;
+            const rowDate = r[col.key] ? String(r[col.key]).split('T')[0] : '';
+            if (!filters.includes(rowDate)) return false;
         }
         return true;
     });
@@ -359,15 +371,12 @@ function renderTable() {
     }
 
     // Pinned rows float to top
-    const pinned   = rows.filter(r => pinnedRowIds.has(r.id));
-    const unpinned = rows.filter(r => !pinnedRowIds.has(r.id));
-    rows = [...pinned, ...unpinned];
+    rows = [...rows.filter(r => pinnedRowIds.has(r.id)), ...rows.filter(r => !pinnedRowIds.has(r.id))];
 
-    document.getElementById('row-count').textContent = `${rows.length} row${rows.length !== 1 ? 's' : ''}`;
+    document.getElementById('row-count').textContent = `${rows.length} sıra`;
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
     rows.forEach(r => tbody.appendChild(buildDisplayRow(r)));
-
     applyColPinning();
 }
 
@@ -377,8 +386,9 @@ function renderTable() {
 function buildDisplayRow(item) {
     const tr = document.createElement('tr');
     tr.dataset.id = item.id;
-    if (item.isConfirmed)       tr.classList.add('confirmed-row');
-    if (pinnedRowIds.has(item.id)) tr.classList.add('row-pinned');
+    if (item.isConfirmed)           tr.classList.add('confirmed-row');
+    if (pinnedRowIds.has(item.id))  tr.classList.add('row-pinned');
+    if (blockedRowIds.has(String(item.id))) tr.classList.add('row-blocked');
 
     COLUMNS.forEach(col => {
         const td = document.createElement('td');
@@ -391,25 +401,26 @@ function buildDisplayRow(item) {
                 ? `<span style="color:var(--accent)">✔</span>`
                 : `<span style="color:var(--muted)">✗</span>`;
         } else if (col.type === 'date') {
-        td.textContent = v ? new Date(v).toISOString().replace('T', ' ').substring(0, 19) : '';
+            td.textContent = v ? new Date(v).toISOString().replace('T',' ').substring(0,19) : '';
         } else {
             td.textContent = v;
         }
         tr.appendChild(td);
     });
 
-    // Actions cell
+    const isBlocked = blockedRowIds.has(String(item.id));
+    const isPinned  = pinnedRowIds.has(item.id);
+
     const actTd = document.createElement('td');
     actTd.classList.add('col-sticky-right');
     actTd.innerHTML = `<div class="tbl-actions">
-        <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
-                title="Pin / unpin row" onclick="togglePinRow(${item.id})">🔒</button>
-        <button class="row-pin-btn ${pinnedRowIds.has(item.id) ? 'active' : ''}"
-                title="Pin / unpin row" onclick="togglePinRow(${item.id})">📌</button>
+        <button class="row-pin-btn ${isPinned ? 'active' : ''}"
+                title="Sıranı sabit et / aç" onclick="togglePinRow(${item.id})">📌</button>
+        <button class="row-block-btn ${isBlocked ? 'active' : ''}"
+                title="Sıranı kilidlə / aç" onclick="toggleBlockRow(${item.id})">🔒</button>
         <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
         <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
     </div>`;
-        // <button class="tbl-action-btn del"  onclick="deleteRow(${item.id})">Delete</button>
     tr.appendChild(actTd);
     return tr;
 }
@@ -427,27 +438,16 @@ function startEdit(id) {
         if (col.readOnly || blockedCols.has(col.key)) return;
         const td = tds[i];
         const v  = item[col.key] ?? '';
-        if (col.type === 'bool') ;
-            // td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`; }
-        else if (col.type === 'date') {
+
+        if (col.type === 'bool') {
+            td.innerHTML = `<input type="checkbox" data-key="${col.key}" ${v ? 'checked' : ''}>`;
+        } else if (col.type === 'date') {
             td.innerHTML = `<input type="date" data-key="${col.key}" value="${v ? String(v).split('T')[0] : ''}">`;
-        }
-        else if (col.type === 'enum') {
-            td.innerHTML = buildSelectHtml(col.key, v);
-        }
-        else if (col.type === 'combo') {
-            const custom = v && !STATUSES.includes(v);
-            td.innerHTML = `<div class="combo-wrap">
-                <select data-key="${col.key}" onchange="comboChange(this)">
-                    <option value="">--</option>
-                    ${STATUSES.map(s => `<option value="${s}"${v===s?' selected':''}>${s}</option>`).join('')}
-                    <option value="__custom__"${custom?' selected':''}>Custom…</option>
-                </select>
-                <input type="text" data-key="${col.key}-custom" placeholder="Type here…"
-                       value="${custom ? esc(v) : ''}" style="${custom ? '' : 'display:none'}">
-            </div>`;
-        }
-        else {
+        } else if (col.type === 'enum') {
+            td.innerHTML = buildSelectHtml(col.key, v, getOpts(col));
+        } else if (col.type === 'combo') {
+            td.innerHTML = buildComboHtml(col.key, v, getOpts(col));
+        } else {
             td.innerHTML = `<input type="${col.type==='number'?'number':'text'}" data-key="${col.key}" value="${esc(String(v))}">`;
         }
     });
@@ -456,6 +456,12 @@ function startEdit(id) {
         <button class="tbl-action-btn save" onclick="saveEdit(${id})">Yadda saxla</button>
         <button class="tbl-action-btn del"  onclick="renderTable()">Ləğv et</button>
     </div>`;
+
+    // Enter to save (skip note field)
+    tr.querySelectorAll('input, select').forEach(el => {
+        if (el.dataset.key === 'qeyd') return;
+        el.addEventListener('keydown', e => { if (e.key === 'Enter') saveEdit(id); });
+    });
 }
 
 function comboChange(sel) {
@@ -464,11 +470,24 @@ function comboChange(sel) {
     if (sel.value !== '__custom__') inp.value = '';
 }
 
-function buildSelectHtml(key, val) {
+function buildSelectHtml(key, val, opts) {
     return `<select data-key="${key}">
         <option value="">--</option>
-        ${STATUSES.map(s => `<option value="${s}"${val===s?' selected':''}>${s}</option>`).join('')}
+        ${opts.map(s => `<option value="${s}"${val===s?' selected':''}>${s}</option>`).join('')}
     </select>`;
+}
+
+function buildComboHtml(key, val, opts) {
+    const custom = val && !opts.includes(val);
+    return `<div class="combo-wrap">
+        <select data-key="${key}" onchange="comboChange(this)">
+            <option value="">--</option>
+            ${opts.map(s => `<option value="${s}"${val===s?' selected':''}>${s}</option>`).join('')}
+            <option value="__custom__"${custom?' selected':''}>Əl ilə yaz…</option>
+        </select>
+        <input type="text" data-key="${key}-custom" placeholder="Dəyər daxil edin…"
+               value="${custom ? esc(val) : ''}" style="${custom ? '' : 'display:none'}">
+    </div>`;
 }
 
 async function saveEdit(id) {
@@ -498,8 +517,8 @@ async function saveEdit(id) {
         const saved = await res.json();
         allData[allData.findIndex(x => x.id === id)] = saved;
         renderTable();
-        showAlert('Saved!', 'success');
-    } catch(e) { showAlert('Save failed: ' + e.message, 'danger'); }
+        showAlert('Yadda saxlandı!', 'success');
+    } catch(e) { showAlert('Xəta: ' + e.message, 'danger'); }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -515,23 +534,16 @@ function addNewRow() {
         const td = document.createElement('td');
         if (col.stickyLeft) td.classList.add('col-sticky-left');
 
-        if (col.key === 'id') {
-            td.innerHTML = `<span style="color:var(--text-dim);font-size:11px">new</span>`;
+        if (col.readOnly) {
+            td.innerHTML = `<span style="color:var(--muted);font-size:11px">auto</span>`;
         } else if (col.type === 'bool') {
             td.innerHTML = `<input type="checkbox" data-key="${col.key}">`;
         } else if (col.type === 'date') {
             td.innerHTML = `<input type="date" data-key="${col.key}">`;
         } else if (col.type === 'enum') {
-            td.innerHTML = buildSelectHtml(col.key, '');
+            td.innerHTML = buildSelectHtml(col.key, '', getOpts(col));
         } else if (col.type === 'combo') {
-            td.innerHTML = `<div class="combo-wrap">
-                <select data-key="${col.key}" onchange="comboChange(this)">
-                    <option value="">--</option>
-                    ${STATUSES.map(s => `<option value="${s}">${s}</option>`).join('')}
-                    <option value="__custom__">Custom…</option>
-                </select>
-                <input type="text" data-key="${col.key}-custom" placeholder="Type here…" style="display:none">
-            </div>`;
+            td.innerHTML = buildComboHtml(col.key, '', getOpts(col));
         } else {
             td.innerHTML = `<input type="text" data-key="${col.key}" placeholder="${col.label}">`;
         }
@@ -541,8 +553,8 @@ function addNewRow() {
     const actTd = document.createElement('td');
     actTd.classList.add('col-sticky-right');
     actTd.innerHTML = `<div class="tbl-actions">
-        <button class="tbl-action-btn save"   onclick="createRow()">Create</button>
-        <button class="tbl-action-btn del" onclick="this.closest('tr').remove()">Cancel</button>
+        <button class="tbl-action-btn save" onclick="createRow()">Əlavə et</button>
+        <button class="tbl-action-btn del"  onclick="this.closest('tr').remove()">Ləğv et</button>
     </div>`;
     tr.appendChild(actTd);
     tbody.prepend(tr);
@@ -551,7 +563,7 @@ function addNewRow() {
 
 async function createRow() {
     const tr   = document.querySelector('tr[data-id="new"]');
-    const body = {};
+    const body = { depot: @Model };
     tr.querySelectorAll('[data-key]').forEach(el => {
         const key = el.dataset.key;
         if (key.endsWith('-custom')) return;
@@ -564,7 +576,7 @@ async function createRow() {
             body[key] = el.value === '' ? null : el.value;
         }
     });
-    if (!body.dqn) { showAlert('DQN is required.', 'danger'); return; }
+    if (!body.dqn) { showAlert('DQN tələb olunur.', 'danger'); return; }
     try {
         const res = await fetch(API, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -573,38 +585,37 @@ async function createRow() {
         if (!res.ok) throw new Error(await res.text());
         allData.unshift(await res.json());
         renderTable();
-        showAlert('Row created!', 'success');
-    } catch(e) { showAlert('Create failed: ' + e.message, 'danger'); }
-}
-
-// ══════════════════════════════════════════════════════════════════════
-//  DELETE
-// ══════════════════════════════════════════════════════════════════════
-async function deleteRow(id) {
-    if (!confirm('Delete this row?')) return;
-    try {
-        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error();
-        allData = allData.filter(x => x.id !== id);
-        renderTable();
-        showAlert('Deleted.', 'warning');
-    } catch { showAlert('Delete failed.', 'danger'); }
+        showAlert('Əlavə edildi!', 'success');
+    } catch(e) { showAlert('Xəta: ' + e.message, 'danger'); }
 }
 
 // ══════════════════════════════════════════════════════════════════════
 //  CONFIRM
 // ══════════════════════════════════════════════════════════════════════
 async function ConfirmRow(id) {
-    if (!confirm('Confirm this row?')) return;
+    if (!confirm('Bu sıranı təsdiqləyirsiniz?')) return;
     try {
         const res = await fetch(`${API}/Confirm/${id}`, { method: 'POST' });
         if (!res.ok) throw new Error();
-        // allData = allData.filter(x => x.id !== id);
         const saved = await res.json();
         allData[allData.findIndex(x => x.id === id)] = saved;
         renderTable();
-        showAlert('Confirmed.', 'success');
-    } catch { showAlert('Confirm failed.', 'danger'); }
+        showAlert('Təsdiqləndi.', 'success');
+    } catch { showAlert('Təsdiqləmə xətası.', 'danger'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  DELETE
+// ══════════════════════════════════════════════════════════════════════
+async function deleteRow(id) {
+    if (!confirm('Bu sıranı silirsiniz?')) return;
+    try {
+        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        allData = allData.filter(x => x.id !== id);
+        renderTable();
+        showAlert('Silindi.', 'warning');
+    } catch { showAlert('Silmə xətası.', 'danger'); }
 }
 
 // ══════════════════════════════════════════════════════════════════════
@@ -622,28 +633,36 @@ async function toggleBlock(colKey) {
             th.querySelector('.col-block-btn')?.classList.toggle('active', blockedCols.has(k));
         });
         renderTable();
-        showAlert(`"${colKey}" ${blockedCols.has(colKey) ? 'blocked 🔒' : 'unblocked 🔓'}`, 'info');
-    } catch { showAlert('Block toggle failed.', 'danger'); }
+        showAlert(`"${colKey}" ${blockedCols.has(colKey) ? 'kilidləndi 🔒' : 'açıldı 🔓'}`, 'info');
+    } catch { showAlert('Xəta baş verdi.', 'danger'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  BLOCK ROW
+// ══════════════════════════════════════════════════════════════════════
+async function toggleBlockRow(id) {
+    try {
+        const res = await fetch(`${API}/block-row/${id}`, { method: 'POST' });
+        if (!res.ok) throw new Error(await res.text());
+        blockedRowIds = new Set((await res.json()).map(String));
+        renderTable();
+        showAlert(`Sıra ${blockedRowIds.has(String(id)) ? 'kilidləndi 🔒' : 'açıldı 🔓'}`, 'info');
+    } catch(e) { showAlert('Xəta: ' + e.message, 'danger'); }
 }
 
 // ══════════════════════════════════════════════════════════════════════
 //  PIN COLUMN
 // ══════════════════════════════════════════════════════════════════════
 function togglePinCol(colKey) {
-    if (pinnedColKeys.includes(colKey)) {
-        pinnedColKeys = pinnedColKeys.filter(k => k !== colKey);
-    } else {
-        pinnedColKeys.push(colKey);
-    }
-    // Update pin button styles
-    document.querySelectorAll('.col-pin-btn').forEach(btn => {
-        btn.classList.toggle('active', pinnedColKeys.includes(btn.dataset.pinKey));
-    });
+    pinnedColKeys = pinnedColKeys.includes(colKey)
+        ? pinnedColKeys.filter(k => k !== colKey)
+        : [...pinnedColKeys, colKey];
+    document.querySelectorAll('.col-pin-btn').forEach(btn =>
+        btn.classList.toggle('active', pinnedColKeys.includes(btn.dataset.pinKey)));
     renderTable();
 }
 
 function applyColPinning() {
-    // Clear old pins
     document.querySelectorAll('#depot-table .col-pinned').forEach(el => {
         el.classList.remove('col-pinned');
         el.style.removeProperty('position');
@@ -651,32 +670,27 @@ function applyColPinning() {
         el.style.removeProperty('z-index');
         el.style.removeProperty('background');
     });
-
     if (pinnedColKeys.length === 0) return;
 
-    // Wait for layout to fully settle before reading widths (Fix 4)
     requestAnimationFrame(() => requestAnimationFrame(() => {
-        const idTh = document.querySelector('#header-row th[data-key="id"]');
-        let offset = idTh ? idTh.getBoundingClientRect().width : 60;
+        const idTh = document.querySelector('#header-row th:first-child');
+        let offset = idTh ? idTh.getBoundingClientRect().width : 0;
 
         pinnedColKeys.forEach(colKey => {
-            const colIdx  = COLUMNS.findIndex(c => c.key === colKey);
+            const colIdx   = COLUMNS.findIndex(c => c.key === colKey);
             if (colIdx === -1) return;
-
             const headerTh = document.querySelector(`#header-row th:nth-child(${colIdx + 1})`);
             const colWidth = headerTh ? headerTh.getBoundingClientRect().width : 100;
 
             document.querySelectorAll('#depot-table tr').forEach(tr => {
                 const cell = tr.children[colIdx];
                 if (!cell) return;
-                const inHead = !!tr.closest('thead');
                 cell.classList.add('col-pinned');
                 cell.style.position   = 'sticky';
                 cell.style.left       = offset + 'px';
-                cell.style.zIndex     = inHead ? '18' : '3';
-                cell.style.background = 'var(--surface)'; // always correct regardless of theme
+                cell.style.zIndex     = tr.closest('thead') ? '18' : '3';
+                cell.style.background = 'var(--surface)';
             });
-
             offset += colWidth;
         });
     }));
@@ -692,37 +706,120 @@ function togglePinRow(id) {
 }
 
 // ══════════════════════════════════════════════════════════════════════
-//  HELPERS
+//  OPTIONS MANAGER MODAL
 // ══════════════════════════════════════════════════════════════════════
-function clearAllFilters() {
-    colFilters  = {};
-    dateFilters = [];
-    document.getElementById('global-search').value = '';
-    // Reset dropdown labels
-    document.querySelectorAll('.fdd-btn').forEach(btn => {
-        btn.querySelector('.fdd-label').textContent = 'All';
-        btn.classList.remove('has-filter');
+
+// Human-readable labels for each option key
+const OPT_LABELS = {
+    CDOptions: 'CD', QapiROptions: 'QapiR', SayKamOptions: 'SayKam',
+    HDDVOptions: 'HDDV', HDDHOptions: 'HDDH', HDDSMOptions: 'HDDSM',
+    DVRVOptions: 'DVRV', KamOptions: 'Kam', KamVOptions: 'KamV',
+    KamNomOptions: 'KamNom', SalMonOptions: 'SalMon', DaySesOptions: 'DaySes',
+    SurMikOptions: 'SurMik', TrafaredOptions: 'Trafared',
+};
+
+function openOptionsManager() {
+    // Remove existing overlay if any
+    document.getElementById('opt-overlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'opt-overlay';
+    overlay.id = 'opt-overlay';
+    overlay.onclick = e => { if (e.target === overlay) closeOptionsManager(); };
+
+    const modal = document.createElement('div');
+    modal.className = 'opt-modal';
+    modal.innerHTML = `
+        <div class="opt-modal-header">
+            <h3>⚙ Seçim Siyahıları</h3>
+            <button class="opt-modal-close" onclick="closeOptionsManager()">×</button>
+        </div>
+        <div class="opt-modal-body" id="opt-modal-body"></div>`;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    renderOptionsModal();
+}
+
+function closeOptionsManager() {
+    document.getElementById('opt-overlay')?.remove();
+}
+
+function renderOptionsModal() {
+    const body = document.getElementById('opt-modal-body');
+    if (!body) return;
+    body.innerHTML = '';
+
+    Object.entries(OPT_LABELS).forEach(([optKey, label]) => {
+        const values = OPTIONS[optKey] || [];
+        const group  = document.createElement('div');
+        group.className = 'opt-group';
+        group.id = `opt-group-${optKey}`;
+
+        group.innerHTML = `
+            <div class="opt-group-title">${label}</div>
+            <div class="opt-items" id="opt-items-${optKey}">
+                ${values.length === 0
+                    ? `<span class="opt-empty">Seçim yoxdur</span>`
+                    : values.map(v => optItemHtml(optKey, v)).join('')}
+            </div>
+            <div class="opt-add-row">
+                <input id="opt-inp-${optKey}" type="text" placeholder="Yeni seçim…"
+                       onkeydown="if(event.key==='Enter') addOption('${optKey}')">
+                <button class="opt-add-btn" onclick="addOption('${optKey}')">+ Əlavə et</button>
+            </div>`;
+        body.appendChild(group);
     });
-    document.querySelectorAll('.filter-row select').forEach(s => s.value = '');
-    renderDateTags();
-    renderTable();
 }
 
-function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function optItemHtml(optKey, v) {
+    return `<div class="opt-item">
+        <span>${esc(v)}</span>
+        <button class="opt-item-del" title="Sil" onclick="removeOption('${optKey}','${esc(v)}')">🗑</button>
+    </div>`;
 }
 
-function showAlert(msg, type) {
-    const el = document.getElementById('depot-alert');
-    el.className = `depot-alert show ${type}`;
-    el.textContent = msg;
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), 3000);
+async function addOption(optKey) {
+    const inp   = document.getElementById(`opt-inp-${optKey}`);
+    const value = inp.value.trim();
+    if (!value) return;
+
+    try {
+        const res = await fetch(`${API}/options/${optKey}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(value)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        OPTIONS[optKey] = await res.json();
+        inp.value = '';
+        refreshOptItems(optKey);
+        showAlert(`"${value}" əlavə edildi.`, 'success');
+    } catch(e) { showAlert('Xəta: ' + e.message, 'danger'); }
 }
 
+async function removeOption(optKey, value) {
+    if (!confirm(`"${value}" silinsin?`)) return;
+    try {
+        const res = await fetch(`${API}/options/${optKey}/${encodeURIComponent(value)}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(await res.text());
+        OPTIONS[optKey] = await res.json();
+        refreshOptItems(optKey);
+        showAlert(`"${value}" silindi.`, 'warning');
+    } catch(e) { showAlert('Xəta: ' + e.message, 'danger'); }
+}
 
+function refreshOptItems(optKey) {
+    const container = document.getElementById(`opt-items-${optKey}`);
+    if (!container) return;
+    const values = OPTIONS[optKey] || [];
+    container.innerHTML = values.length === 0
+        ? `<span class="opt-empty">Seçim yoxdur</span>`
+        : values.map(v => optItemHtml(optKey, v)).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  EXPORT
+// ══════════════════════════════════════════════════════════════════════
 async function exportFiltered() {
-    // Get the currently visible rows using the same filter logic
     const q = document.getElementById('global-search').value.toLowerCase();
 
     let rows = allData.filter(r => {
@@ -739,31 +836,61 @@ async function exportFiltered() {
                 if (!v.has(String(r[k] ?? ''))) return false;
             }
         }
-        if (dateFilters.length > 0) {
-            const d = r.confirmedDate ? r.confirmedDate.split('T')[0] : '';
-            if (!dateFilters.includes(d)) return false;
+        for (const col of COLUMNS.filter(c => c.dateFilter)) {
+            const filters = dateFiltersMap[col.key];
+            if (!filters || filters.length === 0) continue;
+            const rowDate = r[col.key] ? String(r[col.key]).split('T')[0] : '';
+            if (!filters.includes(rowDate)) return false;
         }
         return true;
     });
 
-    if (rows.length === 0) { showAlert('No rows to export.', 'warning'); return; }
+    if (rows.length === 0) { showAlert('Heç bir sıra tapılmadı.', 'warning'); return; }
 
     const res = await fetch(`${API}/export`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rows)
     });
+    if (!res.ok) { showAlert('Export xətası.', 'danger'); return; }
 
-    if (!res.ok) { showAlert('Export failed.', 'danger'); return; }
-
-    // Trigger download
     const blob = await res.blob();
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
-    a.href     = url;
+    a.href = url;
     a.download = `DepotData_${new Date().toISOString().slice(0,10)}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  CLEAR FILTERS
+// ══════════════════════════════════════════════════════════════════════
+function clearAllFilters() {
+    colFilters     = {};
+    dateFiltersMap = {};
+    document.getElementById('global-search').value = '';
+    document.querySelectorAll('.fdd-btn').forEach(btn => {
+        btn.querySelector('.fdd-label').textContent = 'Hamısı';
+        btn.classList.remove('has-filter');
+    });
+    document.querySelectorAll('.filter-row select').forEach(s => s.value = '');
+    COLUMNS.filter(c => c.dateFilter).forEach(col => renderDateTags(col.key));
+    renderTable();
+}
+
+// ══════════════════════════════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════════════════════════════
+function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showAlert(msg, type) {
+    const el = document.getElementById('depot-alert');
+    el.className = `depot-alert show ${type}`;
+    el.textContent = msg;
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 3000);
 }
 </script>
 }
