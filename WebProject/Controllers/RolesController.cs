@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebProject.Attributes;
 using WebProject.DataAccess;
@@ -57,6 +56,8 @@ public class RolesController(WebProjectDbContext _context) : Controller
             vm.AccessOptions = Enum.GetNames<PageAccess>();
             return View(vm);
         }
+
+        vm.RoleName = vm.RoleName.Trim();
 
         if (await _context.Roles.AnyAsync(x => x.Name.ToLower() == vm.RoleName.ToLower(), ct))
         {

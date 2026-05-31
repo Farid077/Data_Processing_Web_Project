@@ -56,9 +56,9 @@ const API = '/api/depotdata';
 const COLUMNS = [
     { key: 'sn',            label: 'SN',             type: 'number', filterable: true  },
     { key: 'dqn',           label: 'DQN',            type: 'text',   filterable: true  },
-    { key: 'eyNom',         label: 'Eyniləşdirmə N.',          type: 'text',   filterable: true  },
+    { key: 'eyNom',         label: 'Ey. Nöm.',          type: 'text',   filterable: true  },
     { key: 'dvr',           label: 'DVR Versiya',            type: 'text',   filterable: true  },
-    { key: 'cd',            label: 'Connect Disconnect',             type: 'enum',   filterable: true,  optionsKey: 'CDOptions'      },
+    { key: 'cd',            label: 'Connect/Disconnect',             type: 'enum',   filterable: true,  optionsKey: 'CDOptions'      },
     { key: 'qapiR',         label: 'Qapi və R',          type: 'enum',   filterable: true,  optionsKey: 'QapiROptions'   },
     { key: 'sayKam',        label: 'Sayım Kameraları',         type: 'enum',   filterable: true,  optionsKey: 'SayKamOptions'  },
     { key: 'hddv',          label: 'HDD Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'HDDVOptions'    },
@@ -69,13 +69,13 @@ const COLUMNS = [
     { key: 'kamV',          label: 'Kamera Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'KamVOptions'    },
     { key: 'kamNom',        label: 'Kamera Nömrəsi',         type: 'enum',   filterable: true,  optionsKey: 'KamNomOptions'  },
     { key: 'salMon',        label: 'Salon Monitoru',         type: 'enum',   filterable: true,  optionsKey: 'SalMonOptions'  },
-    { key: 'daySes',        label: 'Dayanacaq Səsləndirməsi',         type: 'enum',   filterable: true,  optionsKey: 'DaySesOptions'  },
-    { key: 'surMik',        label: 'Sürücü Mikrofonu',         type: 'enum',   filterable: true,  optionsKey: 'SurMikOptions'  },
+    { key: 'daySes',        label: 'Dayanacaq Səs.',         type: 'enum',   filterable: true,  optionsKey: 'DaySesOptions'  },
+    { key: 'surMik',        label: 'Sürücü Mik.',         type: 'enum',   filterable: true,  optionsKey: 'SurMikOptions'  },
     { key: 'trafared',      label: 'Trafared',       type: 'enum',   filterable: true,  optionsKey: 'TrafaredOptions'},
     { key: 'qeyd',          label: 'Qeyd',           type: 'text',   filterable: true  },
-    { key: 'isConfirmed',   label: 'Təsdiqlənib',    type: 'bool',   filterable: true  },
-    { key: 'confirmedDate', label: 'Təsdiqlənmə',    type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
-    { key: 'updatedTime',   label: 'Yenilənmə',      type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
+    { key: 'isConfirmed',   label: 'Təsdiqlənmə',    type: 'bool',   filterable: true  },
+    { key: 'confirmedDate', label: 'Təsdiqlənib',    type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
+    { key: 'updatedTime',   label: 'Redaktə olunub',      type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
     { key: 'confirmerId',   label: 'Təsdiqləyən',    type: 'text',   readOnly: true,    filterable: true  },
 ];
 
@@ -296,7 +296,7 @@ function toggleDropdown(wrap) {
         chk.type    = 'checkbox';
         chk.value   = v;
         chk.checked = currentFilter instanceof Set && currentFilter.has(v);
-        chk.onchange = () => updateDropdownFilter(colKey, btn);
+        chk.onchange = () => { updateDropdownFilter(colKey, btn); renderTable(); }
         lbl.appendChild(chk);
         lbl.appendChild(document.createTextNode(v === '' ? '(boş)' : v));
         _fddPanel.appendChild(lbl);
@@ -325,7 +325,7 @@ function updateDropdownFilter(colKey, btn) {
 }
 
 function closeAllDropdowns() {
-    if (!_fddPanel.hidden) renderTable();
+    if (!_fddPanel.hidden);
     _fddPanel.hidden = true;
     _fddActiveCol = null;
     _fddActiveBtn = null;
