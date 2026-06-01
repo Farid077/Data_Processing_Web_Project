@@ -46,26 +46,24 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WebProjectDbContext>();
 
-    if(!await db.Roles.AnyAsync(r => r.Name == "SuperAdmin"))
-    {
-        Role role = new()
-        {
-            Name = "SuperAdmin",
-            Permissions = Enum.GetValues<Pages>().Select(p => (int)p | (int)PageAccess.Read_Write).ToList()
-        };
+    //if(!await db.Roles.AnyAsync(r => r.Name == "SuperAdmin"))
+    //{
+    //    Role role = new()
+    //    {
+    //        Name = "SuperAdmin",
+    //        Permissions = Enum.GetValues<Pages>().Select(p => (int)p | (int)PageAccess.Read_Write).ToList()
+    //    };
 
-        await db.Roles.AddAsync(role);
-        //await db.SaveChangesAsync();
-    }
+    //    await db.Roles.AddAsync(role);
+    //    //await db.SaveChangesAsync();
+    //}
 
     if(!await db.Roles.AnyAsync(r => r.Name == "User"))
     {
-        Role role = new()
+        await db.Roles.AddAsync(new()
         {
             Name = "User"
-        };
-
-        await db.Roles.AddAsync(role);
+        });
         //await db.SaveChangesAsync();
     }
 
@@ -73,6 +71,15 @@ using (var scope = app.Services.CreateScope())
 
     if (!await db.Users.AnyAsync(u => u.Username == "admin" && u.RoleId == "SuperAdmin"))
     {
+        if (!await db.Roles.AnyAsync(r => r.Name == "SuperAdmin"))
+        {
+            await db.Roles.AddAsync(new()
+            {
+                Name = "SuperAdmin",
+                Permissions = Enum.GetValues<Pages>().Select(p => (int)p | (int)PageAccess.Read_Write).ToList()
+            });
+            //await db.SaveChangesAsync();
+        }
         if (!await db.Users.AnyAsync(u => u.Username == "admin"))
         {
             await db.Users.AddAsync(new User

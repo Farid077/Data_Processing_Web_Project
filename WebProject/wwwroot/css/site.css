@@ -699,13 +699,13 @@ aside.collapsed {
             }
 
     /* Cells */
-    #depot-table td {
-        padding: 10px 14px;
+/*    #depot-table td {
+        padding: 0px 10px;
         font-size: 12px;
         color: var(--text);
         vertical-align: middle;
         white-space: nowrap;
-    }
+    }*/
 
     /* Blocked column */
     #depot-table th.col-blocked {
@@ -833,6 +833,7 @@ aside.collapsed {
     font-size: 11px;
     color: var(--text);
     outline: none;
+    height: 35px;
     width: 100%;
     max-width: 130px;
     cursor: pointer;
@@ -851,6 +852,7 @@ aside.collapsed {
     font-size: 11px;
     color: var(--text);
     outline: none;
+    height: 35px;
     width: 130px;
 }
 
@@ -886,6 +888,7 @@ aside.collapsed {
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     padding: 4px 10px;
+    height: 29px;
     border-radius: 5px;
     cursor: pointer;
     transition: all .13s;
@@ -1335,7 +1338,7 @@ main {
 
 /* Cells */
 #depot-table td {
-    padding: 10px 12px;
+    padding: 5px 10px;
     font-size: 12px;
     color: var(--text);
     vertical-align: middle;

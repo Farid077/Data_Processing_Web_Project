@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System.Security.Claims;
 using WebProject.Attributes;
@@ -410,72 +411,72 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 Trafared = Get(row, "Trafared"),
                 Qeyd = Get(row, "Qeyd"),
                 Depot = depot,
-                //ConfirmerId = Get(row, "")
+                ConfirmedDate = DateTime.TryParse(Get(row, "İcra edildiyi tarix"), out DateTime date) ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : null,
+                //ConfirmerId = Get(row, "İcra edən şəxs") ?? null,
             };
 
             results.Add(item);
         }
-
         await _context.DepotData.AddRangeAsync(results, ct);
         await _context.SaveChangesAsync(ct);
 
-        return RedirectToAction("Index", "Home");
+        return Ok();
     }
 
     [HttpPost("export")]
-public IActionResult Export([FromBody] List<DepotData> rows)
-{
-    ExcelPackage.License.SetNonCommercialPersonal("MyApp");
-
-    using var package = new ExcelPackage();
-    var sheet = package.Workbook.Worksheets.Add("DepotData");
-
-    // Excluded columns
-    var excluded = new HashSet<string> { "Id", "User", "IsDeleted", "IsConfirmed", "CreatedTime", "Depot", };
-
-    var props = typeof(DepotData).GetProperties()
-        .Where(p => !excluded.Contains(p.Name))
-        .ToList();
-
-    // ── Header row ────────────────────────────────────────────
-    for (int i = 0; i < props.Count; i++)
+    public IActionResult Export([FromBody] List<DepotData> rows)
     {
-        var cell = sheet.Cells[1, i + 1];
-        cell.Value = props[i].Name;
+        ExcelPackage.License.SetNonCommercialPersonal("MyApp");
 
-        // Light blue background
-        cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
-        cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(100, 149, 190));
+        using var package = new ExcelPackage();
+        var sheet = package.Workbook.Worksheets.Add("DepotData");
 
-        // Bold text
-        cell.Style.Font.Bold = true;
-        cell.Style.Font.Size = 11;
+        // Excluded columns
+        var excluded = new HashSet<string> { "Id", "User", "IsDeleted", "IsConfirmed", "CreatedTime", "Depot", };
 
-        // Center align
-        cell.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
-        cell.Style.VerticalAlignment   = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+        var props = typeof(DepotData).GetProperties()
+            .Where(p => !excluded.Contains(p.Name))
+            .ToList();
 
-        // Border
-        cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
-        cell.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
-        cell.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
-        cell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
-        cell.Style.Border.Left.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
-        cell.Style.Border.Right.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+        // ── Header row ────────────────────────────────────────────
+        for (int i = 0; i < props.Count; i++)
+        {
+            var cell = sheet.Cells[1, i + 1];
+            cell.Value = props[i].Name;
+
+            // Light blue background
+            cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+            cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(100, 149, 190));
+
+            // Bold text
+            cell.Style.Font.Bold = true;
+            cell.Style.Font.Size = 11;
+
+            // Center align
+            cell.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+            cell.Style.VerticalAlignment   = OfficeOpenXml.Style.ExcelVerticalAlignment.Center;
+
+            // Border
+            cell.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+            cell.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+            cell.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thick;
+            cell.Style.Border.Bottom.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+            cell.Style.Border.Left.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+            cell.Style.Border.Right.Color.SetColor(System.Drawing.Color.FromArgb(0, 0, 0));
+        }
+
+        // Make header row tall (≈ 3-4 normal rows)
+        sheet.Row(1).Height = 45;
+
+        // ── Data rows ─────────────────────────────────────────────
+        for (int r = 0; r < rows.Count; r++)
+            for (int c = 0; c < props.Count; c++)
+                sheet.Cells[r + 2, c + 1].Value = props[c].GetValue(rows[r])?.ToString() ?? "";
+
+        sheet.Cells[sheet.Dimension.Address].AutoFitColumns();
+
+        var bytes = package.GetAsByteArray();
+        return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"DepotData_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
     }
-
-    // Make header row tall (≈ 3-4 normal rows)
-    sheet.Row(1).Height = 45;
-
-    // ── Data rows ─────────────────────────────────────────────
-    for (int r = 0; r < rows.Count; r++)
-        for (int c = 0; c < props.Count; c++)
-            sheet.Cells[r + 2, c + 1].Value = props[c].GetValue(rows[r])?.ToString() ?? "";
-
-    sheet.Cells[sheet.Dimension.Address].AutoFitColumns();
-
-    var bytes = package.GetAsByteArray();
-    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        $"DepotData_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
-}
 }

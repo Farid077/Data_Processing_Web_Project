@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <Folder Include="DataAccess\" />
+    <Folder Include="Models\Depot\Enums\" />
     <Folder Include="wwwroot\js\" />
   </ItemGroup>
 

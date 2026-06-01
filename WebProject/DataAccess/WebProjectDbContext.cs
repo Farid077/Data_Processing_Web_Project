@@ -13,9 +13,6 @@ namespace WebProject.DataAccess
         public DbSet<OptionList> OptionLists { get; set; }
         public DbSet<BlockList> BlockLists { get; set; }
 
-        //public DbSet<Department> Departments { get; set; }
-        //public DbSet<Issue> Issues { get; set; }
-
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfigurationsFromAssembly(typeof(WebProjectDbContext).Assembly);
