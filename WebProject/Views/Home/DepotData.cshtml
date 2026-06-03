@@ -394,6 +394,7 @@ function buildDisplayRow(item) {
         const td = document.createElement('td');
         if (col.stickyLeft)           td.classList.add('col-sticky-left');
         if (blockedCols.has(col.key)) td.classList.add('col-blocked');
+        if (col.key === 'qeyd')       td.classList.add('col-qeyd');
 
         const v = item[col.key] ?? '';
         if (col.type === 'bool') {
@@ -663,37 +664,77 @@ function togglePinCol(colKey) {
 }
 
 function applyColPinning() {
+    // Clear all previous pin styles (also clear 'right' now)
     document.querySelectorAll('#depot-table .col-pinned').forEach(el => {
         el.classList.remove('col-pinned');
         el.style.removeProperty('position');
         el.style.removeProperty('left');
+        el.style.removeProperty('right');
         el.style.removeProperty('z-index');
         el.style.removeProperty('background');
     });
     if (pinnedColKeys.length === 0) return;
 
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-        const idTh = document.querySelector('#header-row th:first-child');
-        let offset = idTh ? idTh.getBoundingClientRect().width : 0;
+    // Sort pinned cols by natural column position — not pinning order
+    const pinnedByNaturalOrder = COLUMNS
+        .map((col, idx) => ({ col, idx }))
+        .filter(({ col }) => pinnedColKeys.includes(col.key));
 
-        pinnedColKeys.forEach(colKey => {
-            const colIdx   = COLUMNS.findIndex(c => c.key === colKey);
-            if (colIdx === -1) return;
-            const headerTh = document.querySelector(`#header-row th:nth-child(${colIdx + 1})`);
-            const colWidth = headerTh ? headerTh.getBoundingClientRect().width : 100;
+    const midPoint = COLUMNS.length / 2;
+
+    // Left-side: columns in first half → stick left
+    const leftPinned  = pinnedByNaturalOrder
+        .filter(({ idx }) => idx < midPoint)
+        .sort((a, b) => a.idx - b.idx);
+
+    // Right-side: columns in second half → stick right
+    const rightPinned = pinnedByNaturalOrder
+        .filter(({ idx }) => idx >= midPoint)
+        .sort((a, b) => b.idx - a.idx); // reverse: rightmost first
+
+    setTimeout(() => {
+        // ── Left-side pins ──────────────────────────────────────
+        let leftOffset = 0;
+        leftPinned.forEach(({ col, idx }) => {
+            const headerTh = document.querySelector(`#header-row th:nth-child(${idx + 1})`);
+            if (!headerTh) return;
+            const colWidth = headerTh.offsetWidth;
 
             document.querySelectorAll('#depot-table tr').forEach(tr => {
-                const cell = tr.children[colIdx];
+                const cell = tr.children[idx];
                 if (!cell) return;
                 cell.classList.add('col-pinned');
                 cell.style.position   = 'sticky';
-                cell.style.left       = offset + 'px';
+                cell.style.left       = leftOffset + 'px';
                 cell.style.zIndex     = tr.closest('thead') ? '18' : '3';
                 cell.style.background = 'var(--surface)';
             });
-            offset += colWidth;
+            leftOffset += colWidth;
         });
-    }));
+
+        // ── Right-side pins ─────────────────────────────────────
+        // Start offset after the always-sticky Actions column
+        const actTh = document.querySelector('#header-row th.col-sticky-right');
+        let rightOffset = actTh ? actTh.offsetWidth : 0;
+
+        rightPinned.forEach(({ col, idx }) => {
+            const headerTh = document.querySelector(`#header-row th:nth-child(${idx + 1})`);
+            if (!headerTh) return;
+            const colWidth = headerTh.offsetWidth;
+
+            document.querySelectorAll('#depot-table tr').forEach(tr => {
+                const cell = tr.children[idx];
+                if (!cell) return;
+                cell.classList.add('col-pinned');
+                cell.style.position   = 'sticky';
+                cell.style.right      = rightOffset + 'px';
+                cell.style.removeProperty('left');
+                cell.style.zIndex     = tr.closest('thead') ? '18' : '3';
+                cell.style.background = 'var(--surface)';
+            });
+            rightOffset += colWidth;
+        });
+    }, 0);
 }
 
 // ══════════════════════════════════════════════════════════════════════

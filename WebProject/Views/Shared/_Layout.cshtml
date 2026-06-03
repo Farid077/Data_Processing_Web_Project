@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Console — @ViewData["Title"]</title>
+    <!-- Apply saved theme immediately before render to prevent flash -->
+    <script>
+        document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" />
     @await RenderSectionAsync("Styles", required: false)
-    @* <script>
-        // document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
-        // const savedTheme = localStorage.getItem('theme') || 'dark';
-        // document.documentElement.dataset.theme = savedTheme;
-        // applySelectOptionTheme(savedTheme);
-    </script> *@
 </head>
 <body>
 
@@ -21,66 +19,50 @@
             <div class="logo-mark">A</div>
             <h1 class="logo-text">Admin Console</h1>
         </div>
+
+        <!-- nav scrolls independently -->
         <nav>
             <div class="nav-label nav-label-text">Main</div>
             <a asp-action="Index" asp-controller="Home"
                class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" title="Dashboard">
                 <span class="icon">▦</span> <span class="nav-text">Dashboard</span>
             </a>
-            @* <a asp-action="Index" asp-controller="Users"
-               class="@(ViewData["ActivePage"]?.ToString() == "Users" ? "active" : "")" title="Users">
-                <span class="icon">◈</span> <span class="nav-text">Users</span>
-            </a>
-            <a asp-action="Index" asp-controller="Roles"
-               class="@(ViewData["ActivePage"]?.ToString() == "Roles" ? "active" : "")" title="Roles">
-                <span class="icon">◫</span> <span class="nav-text">Roles</span>
-            </a>
-            <a asp-action="AllDepotsData" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Bütün Depolar</span>
-            </a> *@
-            @* <a asp-action="DepotData" asp-controller="Home" asp-route-depot="1"
-               class="@(ViewData["ActivePage"]?.ToString() == "Depot 1" ? "active" : "")" title="Depot Data">
-                <span class="icon">◫</span> <span class="nav-text">Depo 1</span>
-            </a> *@
 
-            @foreach (var perm in @User.FindAll("Permission")){
-                var pageName = Enum.GetValues<Pages>().FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x).ToString();
-                pageName = (int.Parse(perm.Value) & (int)Pages.AllDepos) == (int)Pages.AllDepos ? Pages.AllDepos.ToString() : pageName;
+            @foreach (var perm in User.FindAll("Permission"))
+            {
+                var pageName = Enum.GetValues<Pages>()
+                    .FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x)
+                    .ToString();
+                pageName = (int.Parse(perm.Value) & (int)Pages.AllDepos) == (int)Pages.AllDepos
+                    ? Pages.AllDepos.ToString()
+                    : pageName;
 
-                @if (!string.IsNullOrWhiteSpace(pageName) && pageName != "0" && pageName.ToString()[0] == 'D')
+                if (!string.IsNullOrWhiteSpace(pageName) && pageName != "0" && pageName[0] == 'D')
                 {
                     <a asp-action="DepotData" asp-controller="Home" asp-route-depot="@pageName[^1]"
-                       class="@(ViewData["ActivePage"]?.ToString() == $"Depot {pageName[^1]}" ? "active" : "")" title="Depot Data">
+                       class="@(ViewData["ActivePage"]?.ToString() == $"Depot {pageName[^1]}" ? "active" : "")"
+                       title="Depo @pageName[^1]">
                         <span class="icon">◫</span> <span class="nav-text">Depo @pageName[^1]</span>
                     </a>
                 }
-                else if (pageName == "AllDepos"){
+                else if (pageName == "AllDepos")
+                {
                     <a asp-action="AllDepotsData" asp-controller="Home"
-                       class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")" title="Depot Data">
+                       class="@(ViewData["ActivePage"]?.ToString() == "DepotData" ? "active" : "")"
+                       title="Bütün Depolar">
                         <span class="icon">◫</span> <span class="nav-text">Bütün Depolar</span>
                     </a>
                 }
                 else
                 {
                     <a asp-action="Index" asp-controller="@pageName"
-                       class="@(ViewData["ActivePage"]?.ToString() == $"{pageName}" ? "active" : "")" title="@pageName">
+                       class="@(ViewData["ActivePage"]?.ToString() == pageName ? "active" : "")"
+                       title="@pageName">
                         <span class="icon">◈</span> <span class="nav-text">@pageName</span>
-                    </a>                    
+                    </a>
                 }
             }
-            @* <a asp-action="Index" asp-controller="Departments"
-               class="@(ViewData["ActivePage"]?.ToString() == "Departments" ? "active" : "")" title="Departments">
-                <span class="icon">◫</span> <span class="nav-text">Departments</span>
-            </a>
-            <a asp-action="Index" asp-controller="Issues"
-               class="@(ViewData["ActivePage"]?.ToString() == "Issues" ? "active" : "")" title="Issues">
-                <span class="icon">◫</span> <span class="nav-text">Issues</span>
-            </a>
-            <a asp-action="Products" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "Products" ? "active" : "")" title="Products">
-                <span class="icon">◫</span> <span class="nav-text">Products</span>
-            </a> *@
+
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" title="Logout">
@@ -89,12 +71,12 @@
             </form>
         </nav>
 
-        <!-- Theme toggle -->
+        <!-- Always visible at bottom — outside <nav> so they never scroll away -->
         <button class="sidebar-theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark theme">
-            <span id="theme-icon">☀</span> <span class="nav-text" id="theme-label">Light mode</span>
+            <span id="theme-icon">☀</span>
+            <span class="nav-text" id="theme-label">Light mode</span>
         </button>
 
-        <!-- Collapse toggle -->
         <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar">
             <span id="toggle-icon">◀</span>
         </button>
@@ -114,42 +96,31 @@
             toggleIcon.textContent = collapsed ? '▶' : '◀';
             localStorage.setItem('sidebar_collapsed', collapsed ? '1' : '0');
         }
+
         if (localStorage.getItem('sidebar_collapsed') === '1') {
             sidebar.classList.add('collapsed');
             toggleIcon.textContent = '▶';
         }
 
-        // ── THEME TOGGLE ──────────────────────────────────────────
+        // ── THEME ─────────────────────────────────────────────────
         const themeIcon  = document.getElementById('theme-icon');
         const themeLabel = document.getElementById('theme-label');
-
-        // function applySelectOptionTheme(theme) {
-        //     const bg = theme === 'light' ? '#ffffff' : '#111118';
-        //     const color = theme === 'light' ? '#1a1a2e' : '#ffffff';
-        //     document.querySelectorAll('option').forEach(opt => {
-        //         opt.style.background = bg;
-        //         opt.style.color = color;
-        //     });
-        // }
 
         function toggleTheme() {
             const html    = document.documentElement;
             const isLight = html.dataset.theme === 'light';
-            html.dataset.theme = isLight ? 'dark' : 'light';
+            html.dataset.theme     = isLight ? 'dark' : 'light';
             themeIcon.textContent  = isLight ? '☀' : '☾';
             themeLabel.textContent = isLight ? 'Light mode' : 'Dark mode';
             localStorage.setItem('theme', html.dataset.theme);
-            // applySelectOptionTheme(html.dataset.theme);
         }
 
-        // Restore saved theme
+        // Sync icon/label with already-applied theme (set in <head>)
         const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.dataset.theme = savedTheme;
         if (savedTheme === 'light') {
             themeIcon.textContent  = '☾';
             themeLabel.textContent = 'Dark mode';
         }
-        // applySelectOptionTheme(savedTheme);
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

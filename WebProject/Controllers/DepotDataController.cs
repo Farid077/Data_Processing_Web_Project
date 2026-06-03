@@ -19,6 +19,10 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
     {
+        //return StatusCode(500, "Server configuration error.");
+        //throw new Exception("ssssss");
+        //return BadRequest("bhbm");
+
         IList<DepotManagementVM> data;
 
         if (depot == null)
@@ -133,6 +137,9 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         //_items.Add(item);
         await _context.DepotData.AddAsync(item, ct);
         await _context.SaveChangesAsync(ct);
+        //return BadRequest("bhbm");
+        //return StatusCode(500, "Server configuration error.");
+        //throw new Exception("ssssss");
         return Ok(item);
     }
 
