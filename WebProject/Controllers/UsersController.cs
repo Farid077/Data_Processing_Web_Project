@@ -13,9 +13,10 @@ namespace WebProject.Controllers;
 [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read)]
 public class UsersController(WebProjectDbContext _context, ISessionService _sessionService, IPasswordHasher<User> _hasher) : Controller
 {
-    
     public async Task<IActionResult> Index(CancellationToken ct = default)
     {
+        //throw new Exception("ssssss");
+
         var users = await _context.Users
         .AsNoTracking()
         .Include(x => x.Role)

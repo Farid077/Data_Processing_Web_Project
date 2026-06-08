@@ -520,6 +520,24 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: mi
 .toggle-pw  { cursor: pointer; }
 .toggle-pw:hover { color: var(--text); }
 
+
+#depot-table tbody tr:nth-child(odd) {
+    background: transparent;
+}
+
+#depot-table tbody tr:nth-child(even) {
+    background: rgba(78, 168, 255, 0.12);
+}
+
+#depot-table tbody tr:nth-child(odd):hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+#depot-table tbody tr:nth-child(even):hover {
+    background: rgba(78, 168, 255, 0.10);
+}
+
+
 /* ══════════════════════════════════════════════════════
    LIGHT THEME
 ══════════════════════════════════════════════════════ */
@@ -539,6 +557,22 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: mi
     --tbl-head:   #f8f8fc;
     --tbl-filter: #f0f0f6;
     --tbl-hover:  #ebebf5;
+}
+
+[data-theme="light"] #depot-table tbody tr:nth-child(odd) {
+    background: #ffffff;
+}
+
+[data-theme="light"] #depot-table tbody tr:nth-child(even) {
+    background: rgba(78, 168, 255, 0.2);
+}
+
+[data-theme="light"] #depot-table tbody tr:nth-child(odd):hover {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="light"] #depot-table tbody tr:nth-child(even):hover {
+    background: rgba(78, 168, 255, 0.12);
 }
 
 [data-theme="light"] body           { background: var(--bg); color: var(--text); }
@@ -815,7 +849,7 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: mi
 /* Table action buttons */
 .tbl-action-btn {
     background: none; border: 1px solid var(--border); color: var(--text-dim);
-    font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 9px;
+    font-family: 'DM Mono', monospace; font-size: 11px; padding: 6px 9px;
     border-radius: 5px; cursor: pointer; transition: all .13s; white-space: nowrap;
 }
 

@@ -6,7 +6,6 @@ using WebProject.ExternalServices.Implements;
 using WebProject.ExternalServices.Interfaces;
 using WebProject.Middlewares;
 using WebProject.Models;
-using WebProject.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,33 +17,33 @@ builder.Services.AddStackExchangeRedisCache(options =>
 ThreadPool.SetMinThreads(workerThreads: 10, completionPortThreads: 10);
 
 builder.Services.AddMvc();
+builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISessionService, SessionService>();
-builder.Services.AddSingleton<IExcelDataStore, ExcelDataStore>();
-builder.Services.AddScoped<IExcelService, ExcelService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Login";
-        options.AccessDeniedPath = "/";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.AccessDeniedPath = "/Home/Forbidden";
+        options.ExpireTimeSpan = TimeSpan.FromHours(12);
         options.SlidingExpiration = true;
 
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
     });
 
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
-}
 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WebProjectDbContext>();
+    await db.Database.MigrateAsync();
 
     //if(!await db.Roles.AnyAsync(r => r.Name == "SuperAdmin"))
     //{
@@ -58,7 +57,7 @@ using (var scope = app.Services.CreateScope())
     //    //await db.SaveChangesAsync();
     //}
 
-    if(!await db.Roles.AnyAsync(r => r.Name == "User"))
+    if (!await db.Roles.AnyAsync(r => r.Name == "User"))
     {
         await db.Roles.AddAsync(new()
         {
@@ -134,11 +133,22 @@ using (var scope = app.Services.CreateScope())
     await db.SaveChangesAsync();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.XContentTypeOptions = "nosniff";
+    context.Response.Headers.XFrameOptions = "DENY";
+
+    await next();
+});
+
+app.UseRouting();
+
 app.UseAuthentication();
 app.UseMiddleware<SessionValidationMiddleware>();
 app.UseAuthorization();
@@ -147,7 +157,6 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using System.Security.Claims;
 using WebProject.Attributes;
@@ -19,10 +18,6 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
     {
-        //return StatusCode(500, "Server configuration error.");
-        //throw new Exception("ssssss");
-        //return BadRequest("bhbm");
-
         IList<DepotManagementVM> data;
 
         if (depot == null)
@@ -127,29 +122,25 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // POST api/depotdata
     [HttpPost]
+    [ValidateAntiForgeryToken]
     [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Create([FromBody] DepotData item, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(item.DQN)) return BadRequest("DQN zəruridir.");
+        if (string.IsNullOrWhiteSpace(item.EyNom)) return BadRequest("Eyniləşdirmə nömrəsi zəruridir.");
 
-        if (string.IsNullOrWhiteSpace(item.DQN)) return BadRequest("DQN is required.");
-        //item.Id = _nextId++;
-        //item.IsDeleted = false;
-        //_items.Add(item);
         await _context.DepotData.AddAsync(item, ct);
         await _context.SaveChangesAsync(ct);
-        //return BadRequest("bhbm");
-        //return StatusCode(500, "Server configuration error.");
-        //throw new Exception("ssssss");
         return Ok(item);
     }
 
     // PUT api/depotdata/{id}
     [HttpPut("{id}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Update(int id, [FromBody] DepotData updated, CancellationToken ct = default)
     {
-        //var item = _items.FirstOrDefault(x => x.Id == id && !x.IsDeleted);
         var data = _context.DepotData.FirstOrDefault(x => x.Id == id);
-        //if (item == null) return NotFound();
+
         if (data == null) return NotFound();
 
         //var permissions = User.FindAll("Permissions");
@@ -159,46 +150,71 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         {
             bool isAllowed = permissions.Any(perm => (perm & (int)Pages.AllDepos) == (int)Pages.AllDepos && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
             if (!isAllowed)
-                return BadRequest("You don't have permission to do this");
+                return new ForbidResult();
         }
         else
         {
             var page = Enum.GetValues<Pages>().FirstOrDefault(x => x.ToString() == "Depo" + data.Depot);
             bool isAllowed = permissions.Any(perm => (perm & (int)page) == (int)page && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
             if (!isAllowed)
-                return BadRequest("You don't have permission to do this");
+                return new ForbidResult();
         }
 
-        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
+        //string role = HttpContext.User.FindFirstValue(ClaimTypes.Role) ?? throw new Exception("ClaimTypes user's role is not found");
 
-        if (blockedRows.Value.Contains(id.ToString()))
+        if (HttpContext.User.IsInRole("Admin") || HttpContext.User.IsInRole("SuperAdmin"))
         {
-            return BadRequest("This row is blocked.");
+            data.SN = updated.SN;
+            data.DQN = updated.DQN;
+            data.EyNom = updated.EyNom;
+            data.DVR = updated.DVR;
+            data.CD = updated.CD;
+            data.QapiR = updated.QapiR;
+            data.SayKam = updated.SayKam;
+            data.HDDV = updated.HDDV;
+            data.HDDH = updated.HDDH;
+            data.HDDSM = updated.HDDSM;
+            data.DVRV = updated.DVRV;
+            data.Kam = updated.Kam;
+            data.KamV = updated.KamV;
+            data.KamNom = updated.KamNom;
+            data.SalMon = updated.SalMon;
+            data.DaySes = updated.DaySes;
+            data.SurMik = updated.SurMik;
+            data.Trafared = updated.Trafared;
+            data.Qeyd = updated.Qeyd;
         }
+        else
+        {
+            var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
 
-        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
-        ICollection<string> blockedColumnsList = blockedColumns.Value;
+            if (blockedRows.Value.Contains(id.ToString()))
+                return BadRequest("This row is blocked.");
 
-        // Only update fields that are NOT blocked
-        if (!blockedColumnsList.Contains("SN"))       data.SN       = updated.SN;
-        if (!blockedColumnsList.Contains("DQN"))      data.DQN      = updated.DQN;
-        if (!blockedColumnsList.Contains("EyNom"))    data.EyNom    = updated.EyNom;
-        if (!blockedColumnsList.Contains("DVR"))      data.DVR      = updated.DVR;
-        if (!blockedColumnsList.Contains("CD"))       data.CD       = updated.CD;
-        if (!blockedColumnsList.Contains("QapiR"))    data.QapiR    = updated.QapiR;
-        if (!blockedColumnsList.Contains("SayKam"))   data.SayKam   = updated.SayKam;
-        if (!blockedColumnsList.Contains("HDDV"))     data.HDDV     = updated.HDDV;
-        if (!blockedColumnsList.Contains("HDDH"))     data.HDDH     = updated.HDDH;
-        if (!blockedColumnsList.Contains("HDDSM"))    data.HDDSM    = updated.HDDSM;
-        if (!blockedColumnsList.Contains("DVRV"))     data.DVRV     = updated.DVRV;
-        if (!blockedColumnsList.Contains("Kam"))      data.Kam      = updated.Kam;
-        if (!blockedColumnsList.Contains("KamV"))     data.KamV     = updated.KamV;
-        if (!blockedColumnsList.Contains("KamNom"))   data.KamNom   = updated.KamNom;
-        if (!blockedColumnsList.Contains("SalMon"))   data.SalMon   = updated.SalMon;
-        if (!blockedColumnsList.Contains("DaySes"))   data.DaySes   = updated.DaySes;
-        if (!blockedColumnsList.Contains("SurMik"))   data.SurMik   = updated.SurMik;
-        if (!blockedColumnsList.Contains("Trafared")) data.Trafared = updated.Trafared;
-        if (!blockedColumnsList.Contains("Qeyd"))     data.Qeyd     = updated.Qeyd;
+            var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+            ICollection<string> blockedColumnsList = blockedColumns.Value;
+
+            // Only update fields that are NOT blocked
+            if (!blockedColumnsList.Contains("SN"))        data.SN       = updated.SN;
+            if (!blockedColumnsList.Contains("DQN"))       data.DQN      = updated.DQN;
+            if (!blockedColumnsList.Contains("EyNom"))     data.EyNom    = updated.EyNom;
+            if (!blockedColumnsList.Contains("DVR"))       data.DVR      = updated.DVR;
+            if (!blockedColumnsList.Contains("CD"))        data.CD       = updated.CD;
+            if (!blockedColumnsList.Contains("QapiR"))     data.QapiR    = updated.QapiR;
+            if (!blockedColumnsList.Contains("SayKam"))    data.SayKam   = updated.SayKam;
+            if (!blockedColumnsList.Contains("HDDV"))      data.HDDV     = updated.HDDV;
+            if (!blockedColumnsList.Contains("HDDH"))      data.HDDH     = updated.HDDH;
+            if (!blockedColumnsList.Contains("HDDSM"))     data.HDDSM    = updated.HDDSM;
+            if (!blockedColumnsList.Contains("DVRV"))      data.DVRV     = updated.DVRV;
+            if (!blockedColumnsList.Contains("Kam"))       data.Kam      = updated.Kam;
+            if (!blockedColumnsList.Contains("KamV"))      data.KamV     = updated.KamV;
+            if (!blockedColumnsList.Contains("KamNom"))    data.KamNom   = updated.KamNom;
+            if (!blockedColumnsList.Contains("SalMon"))    data.SalMon   = updated.SalMon;
+            if (!blockedColumnsList.Contains("DaySes"))    data.DaySes   = updated.DaySes;
+            if (!blockedColumnsList.Contains("SurMik"))    data.SurMik   = updated.SurMik;
+            if (!blockedColumnsList.Contains("Trafared"))  data.Trafared = updated.Trafared;
+            if (!blockedColumnsList.Contains("Qeyd"))      data.Qeyd     = updated.Qeyd;
+        }
 
         data.UpdatedTime = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(4), DateTimeKind.Utc);
         await _context.SaveChangesAsync(ct);
@@ -208,6 +224,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // DELETE api/depotdata/{id}  (soft delete)
     [HttpDelete("{id}")]
+    [ValidateAntiForgeryToken]
     [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
@@ -223,6 +240,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // DELETE api/depotdata/All  (hard delete)
     [HttpDelete("All")]
+    [ValidateAntiForgeryToken]
     [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
     public async Task<IActionResult> Delete(CancellationToken ct = default)
     {
@@ -239,6 +257,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // Confirm api/depotdata/Confirm/{id}
     [HttpPost("Confirm/{id}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(int id, CancellationToken ct = default)
     {
         //var item = _items.FirstOrDefault(x => x.Id == id);
@@ -269,6 +288,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // POST api/depotdata/blocked-columns/{column}  — toggle
     [HttpPost("blocked-columns/{column}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleBlock(string column)
     {
         var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
@@ -292,6 +312,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // POST api/depotdata/block-row/{id}  — toggle
     [HttpPost("block-row/{id}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleBlockRow(int id)
     {
         var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
@@ -315,6 +336,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // POST api/depotdata/options/{key}  — add a value to an option list
     [HttpPost("options/{key}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddOption(string key, [FromBody] string value, CancellationToken ct = default)
     {
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
@@ -333,6 +355,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     // DELETE api/depotdata/options/{key}/{value}  — remove a value from an option list
     [HttpDelete("options/{key}/{value}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RemoveOption(string key, string value, CancellationToken ct = default)
     {
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
@@ -345,6 +368,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
 
     [HttpPost("import")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Import(int? depot, IFormFile file, CancellationToken ct = default)
     {
         if (file == null || file.Length == 0)
@@ -360,12 +384,16 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
 
         var results = new List<DepotData>();
-        int depotNum = depot ?? 0;
-        var sheet = package.Workbook.Worksheets[0]; // first sheet
+        int depotNum = depot ?? 1; // nulldursa, 1-cini gotursun.
+        ExcelWorksheet sheet;
 
         if (package.Workbook.Worksheets.Count() >= depotNum)
         {
             sheet = package.Workbook.Worksheets[depotNum-1];
+        }
+        else
+        {
+            sheet = package.Workbook.Worksheets[0]; // first sheet
         }
 
         int rows = sheet.Dimension?.Rows ?? 0;
@@ -427,10 +455,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         await _context.DepotData.AddRangeAsync(results, ct);
         await _context.SaveChangesAsync(ct);
 
-        return Ok();
+        return Ok(new { imported = results.Count });
     }
 
     [HttpPost("export")]
+    [ValidateAntiForgeryToken]
     public IActionResult Export([FromBody] List<DepotData> rows)
     {
         ExcelPackage.License.SetNonCommercialPersonal("MyApp");

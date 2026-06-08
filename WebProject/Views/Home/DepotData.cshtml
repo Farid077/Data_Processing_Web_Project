@@ -5,6 +5,12 @@
     ViewData["ActivePage"] = $"Depot {Model}";
 }
 
+@Html.AntiForgeryToken()
+
+@{
+    bool IsAdmin = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
+}
+
 <div class="depot-page">
     <div class="depot-toolbar">
         <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
@@ -12,7 +18,7 @@
             <span class="search-icon">⌕</span>
             <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
         </div>
-        <form id="import-form" asp-action="Import" asp-controller="DepotData"
+        @* <form id="import-form" asp-action="Import" asp-controller="DepotData"
               asp-route-depot="@Model" method="post" enctype="multipart/form-data"
               style="display:flex;align-items:center;gap:8px;">
             @Html.AntiForgeryToken()
@@ -20,7 +26,14 @@
                 ⬆ Import Excel
                 <input type="file" name="file" accept=".xlsx" style="display:none" onchange="this.form.submit()">
             </label>
-        </form>
+        </form> *@
+
+        <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+            ⬆ Import Excel
+            <input type="file" accept=".xlsx" style="display:none"
+                   onchange="importExcel(this)">
+        </label>
+
         <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
         <button class="btn-ghost" onclick="openOptionsManager()">⚙ Options</button>
         <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
@@ -44,6 +57,11 @@
 
 @section Scripts {
 <script>
+
+const isAdmin = "@IsAdmin";
+
+const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
 // ══════════════════════════════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════════════════════════════
@@ -54,29 +72,29 @@ const API = '/api/depotdata';
 // dateFilter  : true → multi-date picker filter
 // readOnly    : not editable
 const COLUMNS = [
-    { key: 'sn',            label: 'SN',             type: 'number', filterable: true  },
-    { key: 'dqn',           label: 'DQN',            type: 'text',   filterable: true  },
-    { key: 'eyNom',         label: 'Ey. Nöm.',          type: 'text',   filterable: true  },
-    { key: 'dvr',           label: 'DVR Versiya',            type: 'text',   filterable: true  },
-    { key: 'cd',            label: 'Connect/Disconnect',             type: 'enum',   filterable: true,  optionsKey: 'CDOptions'      },
-    { key: 'qapiR',         label: 'Qapi və R',          type: 'enum',   filterable: true,  optionsKey: 'QapiROptions'   },
-    { key: 'sayKam',        label: 'Sayım Kameraları',         type: 'enum',   filterable: true,  optionsKey: 'SayKamOptions'  },
-    { key: 'hddv',          label: 'HDD Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'HDDVOptions'    },
-    { key: 'hddh',          label: 'HDD Həcmi',           type: 'enum',   filterable: true,  optionsKey: 'HDDHOptions'    },
-    { key: 'hddsm',         label: 'HDD Saxlama Müddəti',          type: 'enum',   filterable: true,  optionsKey: 'HDDSMOptions'   },
-    { key: 'dvrv',          label: 'DVR Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'DVRVOptions'    },
-    { key: 'kam',           label: 'Kamera',            type: 'combo',  filterable: true,  optionsKey: 'KamOptions'     },
-    { key: 'kamV',          label: 'Kamera Vəziyyəti',           type: 'enum',   filterable: true,  optionsKey: 'KamVOptions'    },
-    { key: 'kamNom',        label: 'Kamera Nömrəsi',         type: 'enum',   filterable: true,  optionsKey: 'KamNomOptions'  },
-    { key: 'salMon',        label: 'Salon Monitoru',         type: 'enum',   filterable: true,  optionsKey: 'SalMonOptions'  },
-    { key: 'daySes',        label: 'Dayanacaq Səs.',         type: 'enum',   filterable: true,  optionsKey: 'DaySesOptions'  },
-    { key: 'surMik',        label: 'Sürücü Mik.',         type: 'enum',   filterable: true,  optionsKey: 'SurMikOptions'  },
-    { key: 'trafared',      label: 'Trafared',       type: 'enum',   filterable: true,  optionsKey: 'TrafaredOptions'},
-    { key: 'qeyd',          label: 'Qeyd',           type: 'text',   filterable: true  },
-    { key: 'isConfirmed',   label: 'Təsdiqlənmə',    type: 'bool',   filterable: true  },
-    { key: 'confirmedDate', label: 'Təsdiqlənib',    type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
+    { key: 'sn',            label: 'SN',                  type: 'number', filterable: true                                      },
+    { key: 'dqn',           label: 'DQN',                 type: 'text',   readOnly: true,    filterable: true                   },
+    { key: 'eyNom',         label: 'Ey. N.',              type: 'text',   readOnly: true,    filterable: true                   },
+    { key: 'dvr',           label: 'DVR Versiya',         type: 'text',   readOnly: true,    filterable: true                   },
+    { key: 'cd',            label: 'Connect',             type: 'enum',   filterable: true,  optionsKey: 'CDOptions'            },
+    { key: 'qapiR',         label: 'Qapi və R',           type: 'enum',   filterable: true,  optionsKey: 'QapiROptions'         },
+    { key: 'sayKam',        label: 'Sayım Kameraları',    type: 'enum',   filterable: true,  optionsKey: 'SayKamOptions'        },
+    { key: 'hddv',          label: 'HDD Vəziyyəti',       type: 'enum',   filterable: true,  optionsKey: 'HDDVOptions'          },
+    { key: 'hddh',          label: 'HDD Həcmi',           type: 'enum',   filterable: true,  optionsKey: 'HDDHOptions'          },
+    { key: 'hddsm',         label: 'HDD Saxlama Müddəti', type: 'enum',   filterable: true,  optionsKey: 'HDDSMOptions'         },
+    { key: 'dvrv',          label: 'DVR Vəziyyəti',       type: 'enum',   filterable: true,  optionsKey: 'DVRVOptions'          },
+    { key: 'kam',           label: 'Kamera',              type: 'combo',  filterable: true,  optionsKey: 'KamOptions'           },
+    { key: 'kamV',          label: 'Kamera Vəziyyəti',    type: 'enum',   filterable: true,  optionsKey: 'KamVOptions'          },
+    { key: 'kamNom',        label: 'Kamera Nömrəsi',      type: 'enum',   filterable: true,  optionsKey: 'KamNomOptions'        },
+    { key: 'salMon',        label: 'Salon Monitoru',      type: 'enum',   filterable: true,  optionsKey: 'SalMonOptions'        },
+    { key: 'daySes',        label: 'Dayanacaq Səs.',      type: 'enum',   filterable: true,  optionsKey: 'DaySesOptions'        },
+    { key: 'surMik',        label: 'Sürücü Mik.',         type: 'enum',   filterable: true,  optionsKey: 'SurMikOptions'        },
+    { key: 'trafared',      label: 'Trafared',            type: 'enum',   filterable: true,  optionsKey: 'TrafaredOptions'      },
+    { key: 'qeyd',          label: 'Qeyd',                type: 'text',   filterable: true                                      },
+    { key: 'isConfirmed',   label: 'Təsdiqlənmə',         type: 'bool',   filterable: true                                      },
+    { key: 'confirmedDate', label: 'Təsdiqlənib',         type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
     { key: 'updatedTime',   label: 'Redaktə olunub',      type: 'date',   readOnly: true,    filterable: true, dateFilter: true },
-    { key: 'confirmerId',   label: 'Təsdiqləyən',    type: 'text',   readOnly: true,    filterable: true  },
+    { key: 'confirmerId',   label: 'Təsdiqləyən',         type: 'text',   readOnly: true,    filterable: true                   },
 ];
 
 // ══════════════════════════════════════════════════════════════════════
@@ -88,7 +106,7 @@ let blockedCols   = new Set();
 let blockedRowIds = new Set();
 let pinnedColKeys = [];
 let pinnedRowIds  = new Set();
-let sortKey       = null;
+let sortKey       = "sn";
 let sortDir       = 'asc';
 let colFilters    = {};           // colKey → Set | string
 let dateFiltersMap = {};          // colKey → string[]  (generic, supports all date cols)
@@ -436,7 +454,7 @@ function startEdit(id) {
     const tds = tr.querySelectorAll('td');
 
     COLUMNS.forEach((col, i) => {
-        if (col.readOnly || blockedCols.has(col.key)) return;
+        if ((col.readOnly || blockedCols.has(col.key)) && (!isAdmin)) return;
         const td = tds[i];
         const v  = item[col.key] ?? '';
 
@@ -511,7 +529,7 @@ async function saveEdit(id) {
 
     try {
         const res = await fetch(`${API}/${id}`, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            method: 'PUT', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
             body: JSON.stringify(updated)
         });
         if (!res.ok) throw new Error(await res.text());
@@ -580,7 +598,7 @@ async function createRow() {
     if (!body.dqn) { showAlert('DQN tələb olunur.', 'danger'); return; }
     try {
         const res = await fetch(API, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
             body: JSON.stringify(body)
         });
         if (!res.ok) throw new Error(await res.text());
@@ -596,7 +614,11 @@ async function createRow() {
 async function ConfirmRow(id) {
     if (!confirm('Bu sıranı təsdiqləyirsiniz?')) return;
     try {
-        const res = await fetch(`${API}/Confirm/${id}`, { method: 'POST' });
+        const res = await fetch(`${API}/Confirm/${id}`, { method: 'POST',
+            headers: {
+                'RequestVerificationToken': TOKEN
+            }
+        });
         if (!res.ok) throw new Error();
         const saved = await res.json();
         allData[allData.findIndex(x => x.id === id)] = saved;
@@ -611,7 +633,12 @@ async function ConfirmRow(id) {
 async function deleteRow(id) {
     if (!confirm('Bu sıranı silirsiniz?')) return;
     try {
-        const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        const res = await fetch(`${API}/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'RequestVerificationToken': TOKEN
+            }
+        });
         if (!res.ok) throw new Error();
         allData = allData.filter(x => x.id !== id);
         renderTable();
@@ -624,7 +651,12 @@ async function deleteRow(id) {
 // ══════════════════════════════════════════════════════════════════════
 async function toggleBlock(colKey) {
     try {
-        const res = await fetch(`${API}/blocked-columns/${colKey}`, { method: 'POST' });
+        const res = await fetch(`${API}/blocked-columns/${colKey}`, {
+            method: 'POST', 
+            headers: {
+                'RequestVerificationToken': TOKEN
+            }
+        });
         if (!res.ok) throw new Error();
         blockedCols = new Set(await res.json());
         document.querySelectorAll('#header-row th').forEach(th => {
@@ -643,7 +675,11 @@ async function toggleBlock(colKey) {
 // ══════════════════════════════════════════════════════════════════════
 async function toggleBlockRow(id) {
     try {
-        const res = await fetch(`${API}/block-row/${id}`, { method: 'POST' });
+        const res = await fetch(`${API}/block-row/${id}`, { method: 'POST',
+            headers: {
+                'RequestVerificationToken': TOKEN
+            }
+        });
         if (!res.ok) throw new Error(await res.text());
         blockedRowIds = new Set((await res.json()).map(String));
         renderTable();
@@ -738,6 +774,42 @@ function applyColPinning() {
 }
 
 // ══════════════════════════════════════════════════════════════════════
+//  IMPORT EXCEL FILE
+// ══════════════════════════════════════════════════════════════════════
+async function importExcel(input) {
+    if (!input.files[0]) return;
+
+    const formData = new FormData();
+    formData.append('file', input.files[0]);
+
+    showAlert('İdxal edilir…', 'info');
+
+    try {
+        const res = await fetch(`${API}/import?depot=@Model`, {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': TOKEN
+            },
+            body: formData   // do NOT set Content-Type — browser sets it with boundary
+        });
+
+        if (!res.ok) {
+            const err = await res.text();
+            showAlert(`İdxal xətası: ${err}`, 'danger');
+            return;
+        }
+
+        const result = await res.json();
+        showAlert(`${result.imported} sıra idxal edildi!`, 'success');
+        await loadData();   // reload the table without refreshing the page
+    } catch(e) {
+        showAlert(`İdxal xətası: ${e.message}`, 'danger');
+    }
+
+    input.value = ''; // reset so same file can be re-imported if needed
+}
+
+// ══════════════════════════════════════════════════════════════════════
 //  PIN ROW
 // ══════════════════════════════════════════════════════════════════════
 function togglePinRow(id) {
@@ -826,7 +898,7 @@ async function addOption(optKey) {
 
     try {
         const res = await fetch(`${API}/options/${optKey}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
             body: JSON.stringify(value)
         });
         if (!res.ok) throw new Error(await res.text());
@@ -889,7 +961,7 @@ async function exportFiltered() {
     if (rows.length === 0) { showAlert('Heç bir sıra tapılmadı.', 'warning'); return; }
 
     const res = await fetch(`${API}/export`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
         body: JSON.stringify(rows)
     });
     if (!res.ok) { showAlert('Export xətası.', 'danger'); return; }
