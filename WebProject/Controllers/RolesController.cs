@@ -29,6 +29,49 @@ public class RolesController(WebProjectDbContext _context) : Controller
             })
             .ToListAsync(ct);
 
+        TestRole testRole = new();
+
+        foreach (var page in Enum.GetValues<Pages>())
+        {
+            testRole.Permissions.Add((byte)page, 11);
+        }
+
+        //var permissionsForFrontend = testRole.Permissions
+        //    .ToDictionary(
+        //        kvp => ((Pages)kvp.Key).ToString(),       // Cast int back to Pages enum, then to string
+        //        kvp => ((PageAccess)kvp.Value).ToString() // Cast byte back to PageAccess enum, then to string
+        //    );
+
+        var permissionsForFrontend = testRole.Permissions
+            .ToDictionary(
+                kvp => ((Pages)kvp.Key).ToString(), // Get the Page Name
+                kvp => ((TestEnum)kvp.Value)      // Cast byte back to the Flag Enum
+                    .ToString()                     // Built-in .ToString() splits flags by comma automatically!
+                    .Split(", ")                    // Split "Read, Write" into ["Read", "Write"]
+                    .ToList()
+            );
+
+        //foreach (var perm in vm.Permissions)
+        //{
+        //    //testRole.Permissions.Add((int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page), (byte)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access));
+
+
+        //    if (Enum.TryParse<Pages>(perm.Page, out var page) && Enum.TryParse<PageAccess>(perm.Access, out var access))
+        //    {
+        //        testRole.Permissions[(byte)page] |= (int)access;
+        //        //testRole.Permissions.Add((byte)page, (int)access);
+        //    }
+        //}
+
+        foreach (var perm in permissionsForFrontend)
+        {
+            foreach (var acc in perm.Value)
+            {
+                Console.WriteLine(perm.Key);
+                Console.WriteLine(acc);
+            }
+        }
+
         return View(roles);
     }
 
@@ -68,14 +111,36 @@ public class RolesController(WebProjectDbContext _context) : Controller
         }
 
         // Eyniləri silmək
-        for (int i = 0; i < vm.Permissions.Count - 1; i++)
+        //for (int i = 0; i < vm.Permissions.Count - 1; i++)
+        //{
+        //    for (int j = i + 1; j < vm.Permissions.Count; j++)
+        //    {
+        //        if (vm.Permissions[i].Page == vm.Permissions[j].Page)
+        //            vm.Permissions.RemoveAt(j);
+        //    }
+        //}
+
+        TestRole testRole = new();
+
+        foreach (var page in Enum.GetValues<Pages>())
         {
-            for (int j = i + 1; j < vm.Permissions.Count; j++)
+            testRole.Permissions.Add((byte)page, 0);
+        }
+
+        foreach (var perm in vm.Permissions)
+        {
+            //testRole.Permissions.Add((int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page), (byte)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access));
+
+
+            if (Enum.TryParse<Pages>(perm.Page, out var page) && Enum.TryParse<PageAccess>(perm.Access, out var access))
             {
-                if (vm.Permissions[i].Page == vm.Permissions[j].Page)
-                    vm.Permissions.RemoveAt(j);
+                testRole.Permissions[(byte)page] |= (int)access;
+                //testRole.Permissions.Add((byte)page, (int)access);
             }
         }
+
+        foreach (var perm in testRole.Permissions)
+            Console.WriteLine(perm);
 
         Role role = new()
         {
@@ -105,7 +170,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RemovePair(RoleCreateVM vm, int index)
     {
-        if(vm.Permissions.Count > 1)
+        if (vm.Permissions.Count > 1)
             vm.Permissions.RemoveAt(index);
 
         vm.PageOptions = Enum.GetNames<Pages>();
@@ -156,6 +221,26 @@ public class RolesController(WebProjectDbContext _context) : Controller
                     vm.Permissions.RemoveAt(j);
             }
         }
+
+        //TestRole testRole = new();
+
+        //foreach (var perm in vm.Permissions)
+        //{
+        //    //testRole.Permissions.Add((int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page), (byte)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access));
+
+        //    if (Enum.TryParse<Pages>(perm.Page, out var page) && Enum.TryParse<PageAccess>(perm.Access, out var access))
+        //    {
+        //        testRole.Permissions.Add((int)page, (byte)access);
+        //    }
+        //}
+
+        //foreach(var perm in testRole.Permissions)
+        //    Console.WriteLine(perm);
+
+        //TestRole testRole = new()
+        //{
+        //    Permissions = [.. vm.Permissions.Select(perm => new Dictionary<int, byte>())]
+        //};
 
         role.Permissions = [.. vm.Permissions.Select(perm => (int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page)
             | (int)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access))];
