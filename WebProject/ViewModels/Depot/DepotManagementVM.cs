@@ -21,11 +21,11 @@ public class DepotManagementVM
     public string? DaySes { get; set; } // Dayanacaq Səsləndirməsi
     public string? SurMik { get; set; } // Sürücü Mikrofonu Vəziyyəti -> işlək - nasaz
     public string? Trafared { get; set; } // Trafared Vəziyyəti -> işlək - nasaz
-    public string? Qeyd { get; set; } // Qeyd
+    public string? Note { get; set; } // Qeyd
     public bool IsConfirmed { get; set; }
     public DateTime? ConfirmedDate { get; set; } // Təsdiqləndiyi Tarix
     public DateTime? UpdatedTime { get; set; }
     public string? ConfirmerId { get; set; } // Təsdiqləyən Şəxs
-    public int? Depot { get; set; } // Depo Nömrəsi
+    public byte? Depot { get; set; } // Depo Nömrəsi
     public OptionListsVM OptionLists { get; set; } = new OptionListsVM();
 }

@@ -1,13 +1,14 @@
 ﻿namespace WebProject.Models;
 
-public enum Pages
+public enum Pages : byte
 {
-    Users = 4,
-    Roles = 8,
-    Depo1 = 16,
-    Depo2 = 32,
-    Depo3 = 64,
-    Depo4 = 128,
-    Depo5 = 256,
-    AllDepos = Depo1 | Depo2 | Depo3 | Depo4 | Depo5,
+    Depo_1 = 1,
+    Depo_2 = 2,
+    Depo_3 = 3,
+    Depo_4 = 4,
+    Depo_5 = 5,
+    Bütün_Depolar = 10,
+    Users = 11,
+    Roles = 12,
+    //AllPages = Users | Roles | AllDepos,
 }

@@ -9,7 +9,7 @@
     "Parameters": [
       {
         "Name": "depot",
-        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Type": "System.Byte",
         "IsRequired": false
       }
     ],
@@ -27,6 +27,11 @@
         "Name": "item",
         "Type": "WebProject.Models.DepotData",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -48,6 +53,11 @@
         "Name": "updated",
         "Type": "WebProject.Models.DepotData",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -64,6 +74,11 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -75,7 +90,13 @@
     "HttpMethod": "DELETE",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -90,6 +111,11 @@
         "Name": "id",
         "Type": "System.Int32",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -116,6 +142,11 @@
         "Name": "column",
         "Type": "System.String",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -158,6 +189,11 @@
         "Name": "rows",
         "Type": "System.Collections.Generic.List\u00601[[WebProject.Models.DepotData, WebProject, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -171,13 +207,13 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "depot",
-        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=10.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
         "IsRequired": false
       },
       {
-        "Name": "file",
-        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "Name": "depot",
+        "Type": "System.Byte",
         "IsRequired": false
       }
     ],
@@ -210,6 +246,11 @@
         "Name": "value",
         "Type": "System.String",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -231,6 +272,11 @@
         "Name": "value",
         "Type": "System.String",
         "IsRequired": true
+      },
+      {
+        "Name": "depot",
+        "Type": "System.Byte",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

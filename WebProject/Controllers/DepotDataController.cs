@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using OfficeOpenXml;
 using System.Security.Claims;
 using WebProject.Attributes;
 using WebProject.DataAccess;
+using WebProject.ExternalServices.Extentions;
+using WebProject.Migrations;
 using WebProject.Models;
 using WebProject.ViewModels;
 
@@ -16,11 +19,14 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 {
     // GET api/depotdata
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] int? depot, CancellationToken ct = default)
+    public async Task<IActionResult> GetAll([FromQuery] byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Read))
+            return new ForbidResult();
+
         IList<DepotManagementVM> data;
 
-        if (depot == null)
+        if (depot == 10)
         {
             data = await _context.DepotData
             .Where(x => !x.IsDeleted)
@@ -46,7 +52,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 KamNom = x.KamNom,
                 Depot = x.Depot,
                 QapiR = x.QapiR,
-                Qeyd = x.Qeyd,
+                Note = x.Note,
                 ConfirmedDate = x.ConfirmedDate,
                 IsConfirmed = x.IsConfirmed,
                 ConfirmerId = x.ConfirmerId,
@@ -57,6 +63,9 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         }
         else
         {
+            //if (!User.HasAccess((byte)depot, PageAccess.Read))
+            //    return new ForbidResult();
+
             data = await _context.DepotData
                 .Where(x => !x.IsDeleted && x.Depot == depot)
                 .Select(x =>
@@ -81,7 +90,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                     KamNom = x.KamNom,
                     Depot = x.Depot,
                     QapiR = x.QapiR,
-                    Qeyd = x.Qeyd,
+                    Note = x.Note,
                     ConfirmedDate = x.ConfirmedDate,
                     IsConfirmed = x.IsConfirmed,
                     ConfirmerId = x.ConfirmerId,
@@ -123,11 +132,25 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // POST api/depotdata
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
-    public async Task<IActionResult> Create([FromBody] DepotData item, CancellationToken ct = default)
+    //[AuthorizePermission((byte)Pages.AllDepos, (int)PageAccess.Create)]
+    public async Task<IActionResult> Create([FromBody] DepotData item, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Create))
+            return new ForbidResult();
+        
+        //if (item.Depot == null)
+        //{
+        //}
+        //else
+        //{
+        //    if (!User.HasAccess((byte)item.Depot, PageAccess.Create))
+        //        return new ForbidResult();
+        //}
+
         if (string.IsNullOrWhiteSpace(item.DQN)) return BadRequest("DQN zəruridir.");
         if (string.IsNullOrWhiteSpace(item.EyNom)) return BadRequest("Eyniləşdirmə nömrəsi zəruridir.");
+
+        item.Depot ??= depot != 10 ? depot : null;
 
         await _context.DepotData.AddAsync(item, ct);
         await _context.SaveChangesAsync(ct);
@@ -137,32 +160,29 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // PUT api/depotdata/{id}
     [HttpPut("{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(int id, [FromBody] DepotData updated, CancellationToken ct = default)
+    public async Task<IActionResult> Update(int id, [FromBody] DepotData updated, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Update))
+            return new ForbidResult();
+
         var data = _context.DepotData.FirstOrDefault(x => x.Id == id);
 
         if (data == null) return NotFound();
 
-        //var permissions = User.FindAll("Permissions");
-        var permissions = User.FindAll("Permission").Select(perm => int.Parse(perm.Value));
-
-        if (data.Depot == null)
-        {
-            bool isAllowed = permissions.Any(perm => (perm & (int)Pages.AllDepos) == (int)Pages.AllDepos && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
-            if (!isAllowed)
-                return new ForbidResult();
-        }
-        else
-        {
-            var page = Enum.GetValues<Pages>().FirstOrDefault(x => x.ToString() == "Depo" + data.Depot);
-            bool isAllowed = permissions.Any(perm => (perm & (int)page) == (int)page && (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write);
-            if (!isAllowed)
-                return new ForbidResult();
-        }
-
+        //if (data.Depot == null)
+        //{
+        //    if (!User.HasAccess((byte)Pages.AllDepos, PageAccess.Update))
+        //        return new ForbidResult();
+        //}
+        //else
+        //{
+        //    if (!User.HasAccess((byte)data.Depot, PageAccess.Update))
+        //        return new ForbidResult();
+        //}
+        
         //string role = HttpContext.User.FindFirstValue(ClaimTypes.Role) ?? throw new Exception("ClaimTypes user's role is not found");
 
-        if (HttpContext.User.IsInRole("Admin") || HttpContext.User.IsInRole("SuperAdmin"))
+        if (User.HasAccess((Pages)depot, PageAccess.Block))
         {
             data.SN = updated.SN;
             data.DQN = updated.DQN;
@@ -182,7 +202,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
             data.DaySes = updated.DaySes;
             data.SurMik = updated.SurMik;
             data.Trafared = updated.Trafared;
-            data.Qeyd = updated.Qeyd;
+            data.Note = updated.Note;
         }
         else
         {
@@ -213,7 +233,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
             if (!blockedColumnsList.Contains("DaySes"))    data.DaySes   = updated.DaySes;
             if (!blockedColumnsList.Contains("SurMik"))    data.SurMik   = updated.SurMik;
             if (!blockedColumnsList.Contains("Trafared"))  data.Trafared = updated.Trafared;
-            if (!blockedColumnsList.Contains("Qeyd"))      data.Qeyd     = updated.Qeyd;
+            if (!blockedColumnsList.Contains("Qeyd"))      data.Note     = updated.Note;
         }
 
         data.UpdatedTime = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(4), DateTimeKind.Utc);
@@ -225,14 +245,16 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // DELETE api/depotdata/{id}  (soft delete)
     [HttpDelete("{id}")]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
-    public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
+    //[AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
+    public async Task<IActionResult> Delete(int id, byte depot, CancellationToken ct = default)
     {
-        //var item = _items.FirstOrDefault(x => x.Id == id);
         var data = await _context.DepotData.FirstOrDefaultAsync(x => x.Id == id, ct);
-        //if (item == null) return NotFound();
+        
         if (data == null) return NotFound();
-        //item.IsDeleted = true;
+
+        if (!User.HasAccess((Pages)depot, PageAccess.Delete))
+                return new ForbidResult();
+        
         data.IsDeleted = true;
         await _context.SaveChangesAsync(ct);
         return Ok();
@@ -241,8 +263,8 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // DELETE api/depotdata/All  (hard delete)
     [HttpDelete("All")]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
-    public async Task<IActionResult> Delete(CancellationToken ct = default)
+    //[AuthorizePermission((int)Pages.AllDepos, (int)PageAccess.Read_Write)]
+    public async Task<IActionResult> Delete(byte depot, CancellationToken ct = default)
     {
         //var item = _items.FirstOrDefault(x => x.Id == id);
         //var data = await _context.DepotData.FirstOrDefaultAsync(x => x.Id == id, ct);
@@ -250,7 +272,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         //if (data == null) return NotFound();
         //item.IsDeleted = true;
         //data.IsDeleted = true;
-        await _context.DepotData.ExecuteDeleteAsync(ct);
+
+        if (!User.HasAccess((Pages)depot, PageAccess.DeleteAll))
+            return new ForbidResult();
+
+        await _context.DepotData.Where(x => x.Depot == depot).ExecuteDeleteAsync(ct);
         //await _context.SaveChangesAsync(ct);
         return Ok();
     }
@@ -260,17 +286,19 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Confirm(int id, CancellationToken ct = default)
     {
-        //var item = _items.FirstOrDefault(x => x.Id == id);
         var data = await _context.DepotData.FirstOrDefaultAsync(x => x.Id == id, ct);
-        //if (item == null) return NotFound();
+        
         if (data == null) return NotFound();
+
+        //if (!User.HasAccess((Pages)depot, PageAccess.Update))
+        //    return new ForbidResult();
 
         if (HttpContext.User.Identity?.IsAuthenticated == true)
             data.ConfirmerId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("ClaimTypes NameIdentifier is not found");
         else
-            throw new Exception("HttpContext.User.Identity?.IsAuthenticated");
+            return RedirectToAction("Login", "Auth");
+            //throw new Exception("Login to your Account");
         
-        //item.IsConfirmed = true;
         data.IsConfirmed = true;
         data.ConfirmedDate = DateTime.SpecifyKind(DateTime.UtcNow.AddHours(4), DateTimeKind.Utc);
         await _context.SaveChangesAsync(ct);
@@ -289,14 +317,17 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // POST api/depotdata/blocked-columns/{column}  — toggle
     [HttpPost("blocked-columns/{column}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleBlock(string column)
+    public async Task<IActionResult> ToggleBlock(string column, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Block))
+            return new ForbidResult();
+
         var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
 
         if (!blockedColumns.Value.Remove(column))
             blockedColumns.Value.Add(column);
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return Ok(blockedColumns.Value);
     }
@@ -313,14 +344,17 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // POST api/depotdata/block-row/{id}  — toggle
     [HttpPost("block-row/{id}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleBlockRow(int id)
+    public async Task<IActionResult> ToggleBlockRow(int id, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Block))
+            return new ForbidResult();
+
         var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
 
         if (!blockedRows.Value.Remove(id.ToString()))
             blockedRows.Value.Add(id.ToString());
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(ct);
 
         return Ok(blockedRows.Value);
     }
@@ -337,8 +371,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // POST api/depotdata/options/{key}  — add a value to an option list
     [HttpPost("options/{key}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddOption(string key, [FromBody] string value, CancellationToken ct = default)
+    public async Task<IActionResult> AddOption(string key, [FromBody] string value, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Options))
+            return new ForbidResult();
+
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
         if (list == null) return NotFound($"Option list '{key}' not found.");
 
@@ -356,8 +393,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     // DELETE api/depotdata/options/{key}/{value}  — remove a value from an option list
     [HttpDelete("options/{key}/{value}")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RemoveOption(string key, string value, CancellationToken ct = default)
+    public async Task<IActionResult> RemoveOption(string key, string value, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Options))
+            return new ForbidResult();
+
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
         if (list == null) return NotFound($"Option list '{key}' not found.");
 
@@ -369,8 +409,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     [HttpPost("import")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Import(int? depot, IFormFile file, CancellationToken ct = default)
+    public async Task<IActionResult> Import(IFormFile file, byte depot, CancellationToken ct = default)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Import))
+            return new ForbidResult();
+
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded.");
 
@@ -384,7 +427,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
 
         var results = new List<DepotData>();
-        int depotNum = depot ?? 1; // nulldursa, 1-cini gotursun.
+        int depotNum = depot == 10 ? 1 : depot; // nulldursa, 1-cini gotursun.
         ExcelWorksheet sheet;
 
         if (package.Workbook.Worksheets.Count() >= depotNum)
@@ -444,8 +487,8 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
                 DaySes = Get(row, "DaySes"),
                 SurMik = Get(row, "SurMik"),
                 Trafared = Get(row, "Trafared"),
-                Qeyd = Get(row, "Qeyd"),
-                Depot = depot,
+                Note = Get(row, "Qeyd"),
+                Depot = depot == 10 ? null : depot,
                 ConfirmedDate = DateTime.TryParse(Get(row, "İcra edildiyi tarix"), out DateTime date) ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : null,
                 //ConfirmerId = Get(row, "İcra edən şəxs") ?? null,
             };
@@ -460,8 +503,11 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
     [HttpPost("export")]
     [ValidateAntiForgeryToken]
-    public IActionResult Export([FromBody] List<DepotData> rows)
+    public IActionResult Export([FromBody] List<DepotData> rows, byte depot)
     {
+        if (!User.HasAccess((Pages)depot, PageAccess.Export))
+            return new ForbidResult();
+
         ExcelPackage.License.SetNonCommercialPersonal("MyApp");
 
         using var package = new ExcelPackage();

@@ -48,12 +48,12 @@
                         </div>
                     </td>
                     <td>
-                        @foreach (var perm in role.Permissions)
+                        @foreach (var dict in role.Permissions)
                         {
-                            foreach (var dict in perm)
-                            {
+                            @* foreach (var dict in perm)
+                            { *@
                                 <div class="role-tag">@dict.Key - @dict.Value</div>
-                            }
+                            @* } *@
                         }
                     </td>
                     <td>

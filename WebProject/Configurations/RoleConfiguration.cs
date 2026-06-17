@@ -14,7 +14,11 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
             .HasMaxLength(16);
 
         builder.Property(x => x.Permissions)
-            .IsRequired();
+            .IsRequired()
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<Dictionary<byte, int>>(v, (System.Text.Json.JsonSerializerOptions)null) ?? new Dictionary<byte, int>()
+            );
 
         //builder.HasOne(x => x.Department)
         //    .WithMany(x => x.Roles)

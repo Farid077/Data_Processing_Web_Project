@@ -75,7 +75,7 @@ using (var scope = app.Services.CreateScope())
             await db.Roles.AddAsync(new()
             {
                 Name = "SuperAdmin",
-                Permissions = Enum.GetValues<Pages>().Select(p => (int)p | (int)PageAccess.Read_Write).ToList()
+                Permissions = Enum.GetValues<Pages>().ToDictionary(kvp => (byte)kvp, kvp => (int)PageAccess.FullAccess)
             });
             //await db.SaveChangesAsync();
         }

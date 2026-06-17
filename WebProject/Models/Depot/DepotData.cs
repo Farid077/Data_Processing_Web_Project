@@ -21,10 +21,10 @@ public class DepotData : BaseEntity
     public string? DaySes { get; set; } // Dayanacaq Səsləndirməsi
     public string? SurMik { get; set; } // Sürücü Mikrofonu Vəziyyəti -> işlək - nasaz
     public string? Trafared { get; set; } // Trafared Vəziyyəti -> işlək - nasaz
-    public string? Qeyd { get; set; } // Qeyd
+    public string? Note { get; set; } // Qeyd
     public bool IsConfirmed { get; set; } = false;
     public DateTime? ConfirmedDate { get; set; } // Təsdiqləndiyi Tarix
     public string? ConfirmerId { get; set; } // Təsdiqləyən Şəxs
     public User? User { get; set; }
-    public int? Depot { get; set; } // Depo Nömrəsi
+    public byte? Depot { get; set; } // Depo Nömrəsi
 }

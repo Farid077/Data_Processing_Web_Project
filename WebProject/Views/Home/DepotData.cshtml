@@ -1,8 +1,8 @@
-@model int
+@model byte
 
 @{
-    ViewData["Title"] = $"Depo {Model}";
-    ViewData["ActivePage"] = $"Depot {Model}";
+    ViewData["Title"] = ((Pages)Model).ToString();
+    ViewData["ActivePage"] = ((Pages)Model).ToString();
 }
 
 @Html.AntiForgeryToken()
@@ -13,7 +13,9 @@
 
 <div class="depot-page">
     <div class="depot-toolbar">
-        <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
+        @if (User.HasAccess((Pages)Model, PageAccess.Create)){
+            <button class="btn-accent" onclick="addNewRow()">+ New Row</button>
+        }
         <div class="depot-search-wrap">
             <span class="search-icon">⌕</span>
             <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
@@ -28,15 +30,28 @@
             </label>
         </form> *@
 
-        <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-            ⬆ Import Excel
-            <input type="file" accept=".xlsx" style="display:none"
-                   onchange="importExcel(this)">
-        </label>
+        @if (User.HasAccess((Pages)Model, PageAccess.Import)){
+            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
+                ⬆ Import Excel
+                <input type="file" accept=".xlsx" style="display:none"
+                       onchange="importExcel(this)">
+            </label>
+        }
 
-        <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
-        <button class="btn-ghost" onclick="openOptionsManager()">⚙ Options</button>
+        @if (User.HasAccess((Pages)Model, PageAccess.Export)){
+            <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
+        }
+
+        @if (User.HasAccess((Pages)Model, PageAccess.Options)) {
+            <button class="btn-ghost" onclick="openOptionsManager()">⚙ Options</button>
+        }
+
+        @if (User.HasAccess((Pages)Model, PageAccess.DeleteAll)) {
+            <button onclick="deleteAll()" class="btn-ghost del">- Hər şeyi sil</button>
+        }
+
         <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
+
         <span class="row-count" id="row-count"></span>
     </div>
 
@@ -59,6 +74,11 @@
 <script>
 
 const isAdmin = "@IsAdmin";
+
+const canCreate = "@(User.HasAccess((Pages)Model, PageAccess.Create))";
+const canUpdate = "@(User.HasAccess((Pages)Model, PageAccess.Update))";
+const canDelete = "@(User.HasAccess((Pages)Model, PageAccess.Delete))";
+const canBlock = "@(User.HasAccess((Pages)Model, PageAccess.Block))";
 
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
@@ -184,13 +204,15 @@ function buildHeaders() {
         label.textContent = col.label;
         th.appendChild(label);
 
-        // Block col button
-        const blockBtn = document.createElement('button');
-        blockBtn.className = 'col-block-btn' + (blockedCols.has(col.key) ? ' active' : '');
-        blockBtn.title = 'Sütunu kilidlə / aç';
-        blockBtn.textContent = '🔒';
-        blockBtn.onclick = e => { e.stopPropagation(); toggleBlock(col.key); };
-        th.appendChild(blockBtn);
+        if (canBlock) {
+            // Block col button
+            const blockBtn = document.createElement('button');
+            blockBtn.className = 'col-block-btn' + (blockedCols.has(col.key) ? ' active' : '');
+            blockBtn.title = 'Sütunu kilidlə / aç';
+            blockBtn.textContent = '🔒';
+            blockBtn.onclick = e => { e.stopPropagation(); toggleBlock(col.key); };
+            th.appendChild(blockBtn);
+        }
 
         // Pin col button
         const pinBtn = document.createElement('button');
@@ -435,9 +457,14 @@ function buildDisplayRow(item) {
     actTd.innerHTML = `<div class="tbl-actions">
         <button class="row-pin-btn ${isPinned ? 'active' : ''}"
                 title="Sıranı sabit et / aç" onclick="togglePinRow(${item.id})">📌</button>
-        <button class="row-block-btn ${isBlocked ? 'active' : ''}"
+        ${canBlock ? `
+            <button class="row-block-btn ${isBlocked ? 'active' : ''}"
                 title="Sıranı kilidlə / aç" onclick="toggleBlockRow(${item.id})">🔒</button>
-        <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
+            ` : ''}
+        ${canUpdate ?
+
+            `<button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>` : ''
+        }
         <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
     </div>`;
     tr.appendChild(actTd);
@@ -472,7 +499,9 @@ function startEdit(id) {
     });
 
     tds[COLUMNS.length].innerHTML = `<div class="tbl-actions">
-        <button class="tbl-action-btn save" onclick="saveEdit(${id})">Yadda saxla</button>
+    ${canUpdate ?
+        `<button class="tbl-action-btn save" onclick="saveEdit(${id})">Yadda saxla</button>` : ''
+    }
         <button class="tbl-action-btn del"  onclick="renderTable()">Ləğv et</button>
     </div>`;
 
@@ -528,7 +557,7 @@ async function saveEdit(id) {
     });
 
     try {
-        const res = await fetch(`${API}/${id}`, {
+            const res = await fetch(`${API}/${id}?depot=@Model`, {
             method: 'PUT', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
             body: JSON.stringify(updated)
         });
@@ -572,7 +601,9 @@ function addNewRow() {
     const actTd = document.createElement('td');
     actTd.classList.add('col-sticky-right');
     actTd.innerHTML = `<div class="tbl-actions">
-        <button class="tbl-action-btn save" onclick="createRow()">Əlavə et</button>
+    ${canCreate ?
+        `<button class="tbl-action-btn save" onclick="createRow()">Əlavə et</button>` : ''
+    }
         <button class="tbl-action-btn del"  onclick="this.closest('tr').remove()">Ləğv et</button>
     </div>`;
     tr.appendChild(actTd);
@@ -633,7 +664,7 @@ async function ConfirmRow(id) {
 async function deleteRow(id) {
     if (!confirm('Bu sıranı silirsiniz?')) return;
     try {
-        const res = await fetch(`${API}/${id}`, {
+        const res = await fetch(`${API}/${id}?depot=@Model`, {
             method: 'DELETE',
             headers: {
                 'RequestVerificationToken': TOKEN
@@ -651,7 +682,7 @@ async function deleteRow(id) {
 // ══════════════════════════════════════════════════════════════════════
 async function toggleBlock(colKey) {
     try {
-        const res = await fetch(`${API}/blocked-columns/${colKey}`, {
+        const res = await fetch(`${API}/blocked-columns/${colKey}?depot=@Model`, {
             method: 'POST', 
             headers: {
                 'RequestVerificationToken': TOKEN
@@ -675,7 +706,7 @@ async function toggleBlock(colKey) {
 // ══════════════════════════════════════════════════════════════════════
 async function toggleBlockRow(id) {
     try {
-        const res = await fetch(`${API}/block-row/${id}`, { method: 'POST',
+        const res = await fetch(`${API}/block-row/${id}?depot=@Model`, { method: 'POST',
             headers: {
                 'RequestVerificationToken': TOKEN
             }
@@ -897,7 +928,7 @@ async function addOption(optKey) {
     if (!value) return;
 
     try {
-        const res = await fetch(`${API}/options/${optKey}`, {
+        const res = await fetch(`${API}/options/${optKey}?depot=@Model`, {
             method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
             body: JSON.stringify(value)
         });
@@ -912,7 +943,7 @@ async function addOption(optKey) {
 async function removeOption(optKey, value) {
     if (!confirm(`"${value}" silinsin?`)) return;
     try {
-        const res = await fetch(`${API}/options/${optKey}/${encodeURIComponent(value)}`, { method: 'DELETE' });
+        const res = await fetch(`${API}/options/${optKey}/${encodeURIComponent(value)}?depot=@Model`, { method: 'DELETE' });
         if (!res.ok) throw new Error(await res.text());
         OPTIONS[optKey] = await res.json();
         refreshOptItems(optKey);
@@ -960,7 +991,7 @@ async function exportFiltered() {
 
     if (rows.length === 0) { showAlert('Heç bir sıra tapılmadı.', 'warning'); return; }
 
-    const res = await fetch(`${API}/export`, {
+    const res = await fetch(`${API}/export?depot=@Model`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': TOKEN },
         body: JSON.stringify(rows)
     });

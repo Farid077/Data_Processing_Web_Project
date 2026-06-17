@@ -10,13 +10,11 @@ using WebProject.ViewModels;
 
 namespace WebProject.Controllers;
 
-[AuthorizePermission((int)Pages.Users, (int)PageAccess.Read)]
+[AuthorizePermission(Pages.Users, PageAccess.Read)]
 public class UsersController(WebProjectDbContext _context, ISessionService _sessionService, IPasswordHasher<User> _hasher) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken ct = default)
     {
-        //throw new Exception("ssssss");
-
         var users = await _context.Users
         .AsNoTracking()
         .Include(x => x.Role)
@@ -36,7 +34,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         return View(users);
     }
 
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Create)]
     public async Task<IActionResult> Create(CancellationToken ct = default)
     {
         UserCreateVM vm = new()
@@ -49,7 +47,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Create)]
     public async Task<IActionResult> Create(UserCreateVM vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
@@ -87,7 +85,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         return Redirect("Index");
     }
 
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Update)]
     public async Task<IActionResult> Update(string id, CancellationToken ct = default)
     {
         User user = await _getUserAsync(id, ct);
@@ -104,7 +102,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Update)]
     public async Task<IActionResult> Update(string id, UserUpdateVM vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
@@ -142,7 +140,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         return RedirectToAction("Index", "Users");
     }
 
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Delete)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id, CancellationToken ct = default)
@@ -154,7 +152,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         return RedirectToAction("Index", "Users");
     }
 
-    [AuthorizePermission((int)Pages.Users, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Users, PageAccess.Update)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RevokeSession(string id, CancellationToken ct = default)

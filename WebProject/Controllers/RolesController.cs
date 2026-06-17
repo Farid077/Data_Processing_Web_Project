@@ -7,75 +7,35 @@ using WebProject.ViewModels;
 
 namespace WebProject.Controllers;
 
-[AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read)]
+[AuthorizePermission(Pages.Roles, PageAccess.Read)]
 public class RolesController(WebProjectDbContext _context) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken ct = default)
     {
         var roles = await _context.Roles
             .AsNoTracking()
+            //.Include(x => x.Users)
             .Select(role => new RoleManagementVM
             {
                 Name = role.Name,
 
-                Permissions = role.Permissions.Select(perm => new Dictionary<string, string>
-                {{
-                    Enum.GetValues<Pages>().FirstOrDefault(page => (perm & (int)page) == (int)page).ToString(),
-                    (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write ? PageAccess.Read_Write.ToString() : PageAccess.Read.ToString()
-
-                }}).ToList(),
+                Permissions = role.Permissions
+                    .ToDictionary(
+                        kvp => ((Pages)kvp.Key).ToString(), // Get the Page Name
+                        kvp => ((PageAccess)kvp.Value)      // Cast byte back to the Flag Enum
+                            .ToString()                     // Built-in .ToString() splits flags by comma automatically!
+                            .Split(", ")                    // Split "Read, Write" into ["Read", "Write"]
+                            .ToList()
+                    ),
 
                 Users = role.Users!.Select(user => user.Username).ToList()
             })
             .ToListAsync(ct);
 
-        TestRole testRole = new();
-
-        foreach (var page in Enum.GetValues<Pages>())
-        {
-            testRole.Permissions.Add((byte)page, 11);
-        }
-
-        //var permissionsForFrontend = testRole.Permissions
-        //    .ToDictionary(
-        //        kvp => ((Pages)kvp.Key).ToString(),       // Cast int back to Pages enum, then to string
-        //        kvp => ((PageAccess)kvp.Value).ToString() // Cast byte back to PageAccess enum, then to string
-        //    );
-
-        var permissionsForFrontend = testRole.Permissions
-            .ToDictionary(
-                kvp => ((Pages)kvp.Key).ToString(), // Get the Page Name
-                kvp => ((TestEnum)kvp.Value)      // Cast byte back to the Flag Enum
-                    .ToString()                     // Built-in .ToString() splits flags by comma automatically!
-                    .Split(", ")                    // Split "Read, Write" into ["Read", "Write"]
-                    .ToList()
-            );
-
-        //foreach (var perm in vm.Permissions)
-        //{
-        //    //testRole.Permissions.Add((int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page), (byte)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access));
-
-
-        //    if (Enum.TryParse<Pages>(perm.Page, out var page) && Enum.TryParse<PageAccess>(perm.Access, out var access))
-        //    {
-        //        testRole.Permissions[(byte)page] |= (int)access;
-        //        //testRole.Permissions.Add((byte)page, (int)access);
-        //    }
-        //}
-
-        foreach (var perm in permissionsForFrontend)
-        {
-            foreach (var acc in perm.Value)
-            {
-                Console.WriteLine(perm.Key);
-                Console.WriteLine(acc);
-            }
-        }
-
         return View(roles);
     }
 
-    [AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Roles, PageAccess.Create)]
     public async Task<IActionResult> Create()
     {
         var vm = new RoleCreateVM
@@ -90,7 +50,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Roles, PageAccess.Create)]
     public async Task<IActionResult> Create(RoleCreateVM vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
@@ -145,8 +105,8 @@ public class RolesController(WebProjectDbContext _context) : Controller
         Role role = new()
         {
             Name = vm.RoleName,
-            Permissions = [.. vm.Permissions.Select(perm => (int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page)
-            | (int)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access))]
+            //Permissions = [.. vm.Permissions.Select(perm => (int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page)
+            //| (int)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access))]
         };
 
         await _context.Roles.AddAsync(role, ct);
@@ -179,7 +139,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
         return View("Create", vm);
     }
 
-    [AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Roles, PageAccess.Update)]
     public async Task<IActionResult> Update(string id, CancellationToken ct = default)
     {
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == id, ct) ?? throw new Exception($"Role is not found with this Id: {id}");
@@ -189,8 +149,8 @@ public class RolesController(WebProjectDbContext _context) : Controller
             RoleName = role.Name,
             Permissions = [.. role.Permissions.Select(perm => new Pair()
             {
-                Page = Enum.GetValues<Pages>().FirstOrDefault(page => (perm & (int)page) == (int)page).ToString(),
-                Access = (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write ? PageAccess.Read_Write.ToString() : PageAccess.Read.ToString()
+                //Page = Enum.GetValues<Pages>().FirstOrDefault(page => (perm & (int)page) == (int)page).ToString(),
+                //Access = (perm & (int)PageAccess.Read_Write) == (int)PageAccess.Read_Write ? PageAccess.Read_Write.ToString() : PageAccess.Read.ToString()
             })],
             PageOptions = Enum.GetNames<Pages>(),
             AccessOptions = Enum.GetNames<PageAccess>(),
@@ -201,7 +161,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    [AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Roles, PageAccess.Update)]
     public async Task<IActionResult> Update(RoleUpdateVM vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
@@ -242,8 +202,8 @@ public class RolesController(WebProjectDbContext _context) : Controller
         //    Permissions = [.. vm.Permissions.Select(perm => new Dictionary<int, byte>())]
         //};
 
-        role.Permissions = [.. vm.Permissions.Select(perm => (int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page)
-            | (int)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access))];
+        //role.Permissions = [.. vm.Permissions.Select(perm => (int)Enum.GetValues<Pages>().FirstOrDefault(page => page.ToString() == perm.Page)
+        //    | (int)Enum.GetValues<PageAccess>().FirstOrDefault(access => access.ToString() == perm.Access))];
 
         await _context.SaveChangesAsync(ct);
         return Redirect("Index");
@@ -273,7 +233,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
         return View("Update", vm);
     }
 
-    [AuthorizePermission((int)Pages.Roles, (int)PageAccess.Read_Write)]
+    [AuthorizePermission(Pages.Roles, PageAccess.Delete)]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id, CancellationToken ct = default)

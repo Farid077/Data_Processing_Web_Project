@@ -28,7 +28,33 @@
                 <span class="icon">▦</span> <span class="nav-text">Dashboard</span>
             </a>
 
-            @foreach (var perm in User.FindAll("Permission"))
+            @foreach (var page in Enum.GetValues<Pages>())
+            {
+                @* var permissons = User.FindFirst("Permission" + ((byte)page).ToString())?.Value; *@
+                if (User.HasAccess(page, PageAccess.Read)){
+                    if (page.ToString().Contains("Depo"))
+                    {
+                        <a asp-action="DepotData" asp-controller="Home" asp-route-depot="@((byte)page)"
+                           class="@(ViewData["ActivePage"]?.ToString() == page.ToString() ? "active" : "")"
+                           title="@(page.ToString())">
+                            <span class="icon">◫</span> <span class="nav-text">
+                            @* @(page.ToString()) *@
+                            @((page.ToString().Split('_'))[0] + " " + (page.ToString().Split("_"))[1])
+                            </span>
+                        </a>
+                    }
+                    else {
+                        <a asp-action="Index" asp-controller="@(page.ToString())"
+                           class="@(ViewData["ActivePage"]?.ToString() == page.ToString() ? "active" : "")"
+                           title="@(page.ToString())">
+                            <span class="icon">◈</span> <span class="nav-text">@(page.ToString())</span>
+                        </a>
+                    }
+                }
+
+            }
+
+            @* @foreach (var perm in User.FindAll("Permission"))
             {
                 var pageName = Enum.GetValues<Pages>()
                     .FirstOrDefault(x => (int.Parse(perm.Value) & (int)x) == (int)x)
@@ -61,7 +87,7 @@
                         <span class="icon">◈</span> <span class="nav-text">@pageName</span>
                     </a>
                 }
-            }
+            } *@
 
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()

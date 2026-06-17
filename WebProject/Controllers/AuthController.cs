@@ -52,12 +52,12 @@ public class AuthController(WebProjectDbContext _context, ISessionService _sessi
         [
             new (ClaimTypes.NameIdentifier, userId),
             new ("SessionToken", sessionToken),
-            new (ClaimTypes.Role, user.RoleId!)
+            new (ClaimTypes.Role, user.RoleId ?? "User")
         ];
 
-        foreach (int perm in user.Role!.Permissions)
+        foreach (var perm in user.Role!.Permissions)
         {
-            claims.Add(new Claim("Permission", perm.ToString()));
+            claims.Add(new Claim("Permission" + perm.Key.ToString(), perm.Value.ToString()));
         }
 
         ClaimsPrincipal principal = new (new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
