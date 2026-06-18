@@ -65,8 +65,9 @@
                 <span asp-validation-for="ConfirmPassword" class="err-msg"></span>
             </div>
         </div>
-
-        <button type="submit" class="btn-save">Create User</button>
+        @if (User.HasAccess(Pages.Users, PageAccess.Create)){
+            <button type="submit" class="btn-save">Create User</button>
+        }
     </form>
 </div>
 

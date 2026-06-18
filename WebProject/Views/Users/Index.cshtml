@@ -15,7 +15,9 @@
             <button class="btn-cancel" onclick="closeDelete()">Cancel</button>
             <form id="deleteForm" method="POST">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="btn-confirm-delete">Yes, Delete</button>
+                @if (User.HasAccess(Pages.Users, PageAccess.Delete)){
+                    <button type="submit" class="btn-confirm-delete">Yes, Delete</button>
+                }
             </form>
         </div>
     </div>
@@ -34,12 +36,15 @@
 </div> *@
 
 <div class="section-header">
-    <div class="section-title">User Management</div>
+    <div class="section-title">Users Management</div>
     <div style="display: flex;">
         <div class="stat-label">Total Users:</div>
         <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
     </div>
-    <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New User</a>
+    @if (User.HasAccess(Pages.Users, PageAccess.Create))
+    {
+        <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New User</a>
+    }
 </div>
 
 <div class="table-wrap">
@@ -82,18 +87,25 @@
                     <td style="display:flex;">
                         @if (user.Role != "SuperAdmin")
                         {
-                            <a asp-action="Update" asp-route-id="@user.Username" class="action-btn edit" style="text-decoration:none;">Edit</a>
-                            <form method="POST" class="action">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@user.Username" />
-                                <button class="action-btn del" type="button" onclick="openDelete('@user.Username', 'Users/Delete/@user.Username')">
-                                    Delete
-                                </button>
-                                @if (user.IsActive)
-                                {
-                                    <button class="action-btn revoke" type="submit" formaction="Users/RevokeSession/@user.Username">End Session</button>
-                                }
-                            </form>
+                            @if (User.HasAccess(Pages.Users, PageAccess.Update))
+                            {
+                                <a asp-action="Update" asp-route-id="@user.Username" class="action-btn edit" style="text-decoration:none;">Edit</a>
+                            }
+
+                            @if (User.HasAccess(Pages.Users, PageAccess.Delete))
+                            {
+                                <form method="POST" class="action">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.Username" />
+                                    <button class="action-btn del" type="button" onclick="openDelete('@user.Username', 'Users/Delete/@user.Username')">
+                                        Delete
+                                    </button>
+                                    @if (user.IsActive)
+                                    {
+                                        <button class="action-btn revoke" type="submit" formaction="Users/RevokeSession/@user.Username">End Session</button>
+                                    }
+                                </form>
+                            }
                         }
                     </td>
                 </tr>

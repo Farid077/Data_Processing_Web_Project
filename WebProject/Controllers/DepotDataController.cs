@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using OfficeOpenXml;
 using System.Security.Claims;
-using WebProject.Attributes;
 using WebProject.DataAccess;
 using WebProject.ExternalServices.Extentions;
-using WebProject.Migrations;
 using WebProject.Models;
 using WebProject.ViewModels;
 

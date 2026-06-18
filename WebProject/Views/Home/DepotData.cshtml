@@ -7,10 +7,6 @@
 
 @Html.AntiForgeryToken()
 
-@{
-    bool IsAdmin = User.IsInRole("SuperAdmin") || User.IsInRole("Admin");
-}
-
 <div class="depot-page">
     <div class="depot-toolbar">
         @if (User.HasAccess((Pages)Model, PageAccess.Create)){
@@ -73,12 +69,10 @@
 @section Scripts {
 <script>
 
-const isAdmin = "@IsAdmin";
-
-const canCreate = "@(User.HasAccess((Pages)Model, PageAccess.Create))";
-const canUpdate = "@(User.HasAccess((Pages)Model, PageAccess.Update))";
-const canDelete = "@(User.HasAccess((Pages)Model, PageAccess.Delete))";
-const canBlock = "@(User.HasAccess((Pages)Model, PageAccess.Block))";
+const canCreate = !"@(User.HasAccess((Pages)Model, PageAccess.Create))";
+const canUpdate = !"@(User.HasAccess((Pages)Model, PageAccess.Update))";
+const canDelete = !"@(User.HasAccess((Pages)Model, PageAccess.Delete))";
+const canBlock = !"@(User.HasAccess((Pages)Model, PageAccess.Block))";
 
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
@@ -462,10 +456,16 @@ function buildDisplayRow(item) {
                 title="Sıranı kilidlə / aç" onclick="toggleBlockRow(${item.id})">🔒</button>
             ` : ''}
         ${canUpdate ?
-
-            `<button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>` : ''
+            `
+            <button class="tbl-action-btn edit" onclick="startEdit(${item.id})">Redaktə et</button>
+            <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
+            ` : ''
         }
-        <button class="tbl-action-btn edit" onclick="ConfirmRow(${item.id})">Təsdiq et</button>
+        ${canDelete ? `
+            <button class="tbl-action-btn del"  onclick="deleteRow(${item.id})">Sil</button>
+            ` : ''
+        }
+
     </div>`;
     tr.appendChild(actTd);
     return tr;
@@ -481,7 +481,7 @@ function startEdit(id) {
     const tds = tr.querySelectorAll('td');
 
     COLUMNS.forEach((col, i) => {
-        if ((col.readOnly || blockedCols.has(col.key)) && (!isAdmin)) return;
+        if ((col.readOnly || blockedCols.has(col.key)) && (!canBlock)) return;
         const td = tds[i];
         const v  = item[col.key] ?? '';
 

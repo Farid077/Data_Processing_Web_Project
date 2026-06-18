@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using WebProject.Attributes;
 using WebProject.ExternalServices.Extentions;
 using WebProject.Models;
 using WebProject.ViewModels;
@@ -17,7 +16,6 @@ public class HomeController : Controller
     {
         return View();
     }
-
 
     [Authorize]
     public IActionResult DepotData(byte depot)
@@ -37,10 +35,8 @@ public class HomeController : Controller
         return View(depot);
     }
     
-
-    [AuthorizePermission(Pages.Bütün_Depolar, PageAccess.Read)]
-    public IActionResult AllDepotsData() => View();
-
+    //[AuthorizePermission(Pages.Bütün_Depolar, PageAccess.Read)]
+    //public IActionResult AllDepotsData() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error(string errorMessage = "Error!")

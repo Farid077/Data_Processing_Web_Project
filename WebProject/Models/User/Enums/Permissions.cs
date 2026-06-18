@@ -12,5 +12,5 @@ public enum PageAccess
     Options = 64,
     Import = 128,
     Export = 256,
-    FullAccess = Read | Create | Update | Delete | DeleteAll | Options | Import | Export,
+    FullAccess = Read | Create | Update | Delete | DeleteAll | Block | Options | Import | Export,
 }

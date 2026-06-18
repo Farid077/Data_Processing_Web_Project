@@ -73,7 +73,9 @@
 
         <div class="card-footer">
             <div class="footer-right">
-                <button type="submit" class="btn-save">Save Changes</button>
+                @if (User.HasAccess(Pages.Users, PageAccess.Update)){
+                    <button type="submit" class="btn-save">Save Changes</button>
+                }
             </div>
         </div>
     </form>
