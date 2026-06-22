@@ -59,7 +59,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         if (vm.Password != vm.ConfirmPassword)
         {
             vm.RoleOptions = await _context.Roles.Select(r => r.Name).ToListAsync(ct);
-            ModelState.AddModelError("ConfirmPassword", "The password and confirmation password do not match");
+            ModelState.AddModelError("ConfirmPassword", "Parol və parolun təsdiqi uyğun gəlmir.");
             return View(vm);
         }
 
@@ -68,7 +68,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
         if (await _context.Users.AnyAsync(x => x.Username.ToLower() == vm.Username.ToLower(), ct))
         {
             vm.RoleOptions = await _context.Roles.Select(r => r.Name).ToListAsync(ct);
-            ModelState.AddModelError("Username", "This username already exists");
+            ModelState.AddModelError("Username", "Bu istifadəçi adı artıq mövcuddur.");
             return View(vm);
         }
 
@@ -117,7 +117,7 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
             {
                 vm.RoleOptions = await _context.Roles.Select(r => r.Name).ToListAsync(ct);
                 ViewData["Id"] = id;
-                ModelState.AddModelError("ConfirmPassword", "The password and confirmation password do not match");
+                ModelState.AddModelError("ConfirmPassword", "Parol və parolun təsdiqi uyğun gəlmir.");
                 return View(vm);
             }
         }
@@ -157,13 +157,13 @@ public class UsersController(WebProjectDbContext _context, ISessionService _sess
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RevokeSession(string id, CancellationToken ct = default)
     {
-        var user = await _getUserAsync(id, ct);
+        User _ = await _getUserAsync(id, ct);
         await _sessionService.RevokeAsync(id, ct);
         return RedirectToAction("Index", "Users");
     }
 
     private async Task<User> _getUserAsync(string id, CancellationToken ct = default)
     {
-        return await _context.Users.FindAsync(id, ct) ?? throw new Exception($"User not found with this id: {id}");
+        return await _context.Users.FindAsync(id, ct) ?? throw new Exception($"Bu ID ilə istifadəçi tapılmadı: {id}");
     }
 }

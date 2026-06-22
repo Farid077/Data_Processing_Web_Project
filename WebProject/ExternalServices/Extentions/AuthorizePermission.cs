@@ -14,8 +14,5 @@ public static class AuthorizePermission
         bool isAllowed = ((int.TryParse(permissions, out int perm) ? perm : 0) & (int)access) == (int)access;
         
         return isAllowed;
-        //AuthorizationFilterContext context;
-        //if (!isAllowed)
-        //    context.Result = new ForbidResult();
     }
 }

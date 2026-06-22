@@ -7,11 +7,11 @@
 
 <div class="topbar">
     <div class="breadcrumb">
-        <a asp-action="Index" asp-controller="Home">Dashboard</a>
+        <a asp-action="Index" asp-controller="Home">Panel</a>
         <span class="sep">/</span>
-        <a asp-action="Index">Users</a>
+        <a asp-action="Index">İstifadəçilər</a>
         <span class="sep">/</span>
-        <span class="current">Edit User</span>
+        <span class="current">İstifadəçini Redaktə Et</span>
     </div>
 </div>
 
@@ -19,8 +19,8 @@
     <div class="card-header">
         <div class="card-icon blue">✎</div>
         <div>
-            <div class="card-title">Edit User</div>
-            <div class="card-sub">Update the details for this account.</div>
+            <div class="card-title">İstifadəçini Redaktə Et</div>
+            <div class="card-sub">Bu hesabın məlumatlarını redaktə edin.</div>
         </div>
     </div>
 
@@ -38,9 +38,9 @@
         <div class="form-body">
             <div class="form-row single">
                 <div class="field">
-                    <label asp-for="Role">Role</label>
+                    <label asp-for="Role">Rol</label>
                     <select asp-for="Role" id="role">
-                        <option value="">Select role...</option>
+                        <option value="">Rol seçin...</option>
                         @foreach (var role in Model.RoleOptions)
                         {
                             <option selected="@(role == Model.Role ? role : null)" value="@role">@role</option>
@@ -53,18 +53,18 @@
             <div class="form-row single">
                 <div class="field">
                     <label asp-for="Password">
-                        New Password <span style="color:var(--muted);font-size:10px;">(leave blank to keep current)</span>
+                        Yeni Şifrə <span style="color:var(--muted);font-size:10px;">(dəyişməmək üçün boş saxlayın)</span>
                     </label>
-                    <input asp-for="Password" name="Password" type="password" id="password" placeholder="Leave blank to keep current">
-                    <span class="input-icon toggle-pw" id="pw-toggle" onclick="togglePw()">◷ show password</span>
+                    <input asp-for="Password" name="Password" type="password" id="password" placeholder="Dəyişməmək üçün xananı boş saxlayın">
+                    <span class="input-icon toggle-pw" id="pw-toggle" onclick="togglePw()">◷ şifrəni göstər</span>
                     <span asp-validation-for="Password" class="err-msg"></span>
                 </div>
             </div>
 
             <div class="form-row single">
                 <div class="field">
-                    <label asp-for="ConfirmPassword">Confirm Password</label>
-                    <input asp-for="ConfirmPassword" name="ConfirmPassword" type="password" id="confirmpassword" placeholder="Confirm Password">
+                    <label asp-for="ConfirmPassword">Şifrəni Təsdiqlə</label>
+                    <input asp-for="ConfirmPassword" name="ConfirmPassword" type="password" id="confirmpassword" placeholder="Şifrəni Təsdiqləyin">
                     <span class="input-icon toggle-pw" id="pw-toggle-confirm" onclick="togglePwConfirm()">◷ show password</span>
                     <span asp-validation-for="ConfirmPassword" class="err-msg"></span>
                 </div>
@@ -74,7 +74,7 @@
         <div class="card-footer">
             <div class="footer-right">
                 @if (User.HasAccess(Pages.Users, PageAccess.Update)){
-                    <button type="submit" class="btn-save">Save Changes</button>
+                    <button type="submit" class="btn-save">Dəyişiklikləri Yadda Saxla</button>
                 }
             </div>
         </div>
@@ -87,14 +87,14 @@
             const input = document.getElementById('password');
             const icon  = document.getElementById('pw-toggle');
             input.type = input.type === 'password' ? 'text' : 'password';
-            icon.textContent = input.type === 'password' ? '◷ show password' : '◉ hide password';
+            icon.textContent = input.type === 'password' ? '◷ şifrəni göstər' : '◉ şifrəni gizlət';
         }
 
         function togglePwConfirm() {
             const input = document.getElementById('confirmpassword');
             const icon  = document.getElementById('pw-toggle-confirm');
             input.type = input.type === 'password' ? 'text' : 'password';
-            icon.textContent = input.type === 'password' ? '◷ show password' : '◉ hide password';
+            icon.textContent = input.type === 'password' ? '◷ şifrəni göstər' : '◉ şifrəni gizlət';
         }
     </script>
 }

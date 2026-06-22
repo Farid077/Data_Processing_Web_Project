@@ -14,12 +14,17 @@ builder.Services.AddDbContext<WebProjectDbContext>(options =>
 
 builder.Services.AddStackExchangeRedisCache(options =>
     options.Configuration = builder.Configuration.GetConnectionString("Redis"));
-ThreadPool.SetMinThreads(workerThreads: 10, completionPortThreads: 10);
+//ThreadPool.SetMinThreads(workerThreads: 10, completionPortThreads: 10);
 
 builder.Services.AddMvc();
 builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<ISessionService, SessionService>();
+
+// Health check for Docker
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("PostgreSql")!)
+    .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -44,18 +49,6 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<WebProjectDbContext>();
     await db.Database.MigrateAsync();
-
-    //if(!await db.Roles.AnyAsync(r => r.Name == "SuperAdmin"))
-    //{
-    //    Role role = new()
-    //    {
-    //        Name = "SuperAdmin",
-    //        Permissions = Enum.GetValues<Pages>().Select(p => (int)p | (int)PageAccess.Read_Write).ToList()
-    //    };
-
-    //    await db.Roles.AddAsync(role);
-    //    //await db.SaveChangesAsync();
-    //}
 
     if (!await db.Roles.AnyAsync(r => r.Name == "User"))
     {
@@ -148,6 +141,9 @@ app.Use(async (context, next) =>
 });
 
 app.UseRouting();
+
+// Health check endpoint
+app.MapHealthChecks("/health");
 
 app.UseAuthentication();
 app.UseMiddleware<SessionValidationMiddleware>();

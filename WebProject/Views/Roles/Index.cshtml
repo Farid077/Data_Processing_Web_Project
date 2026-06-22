@@ -5,13 +5,13 @@
 }
 
 <div class="section-header">
-    <div class="section-title">Roles Management</div>
+    <div class="section-title">Rolların İdarə Edilməsi</div>
     <div style="display: flex;">
-        <div class="stat-label">Total Roles:</div>
+        <div class="stat-label">Ümumi Rolların sayı:</div>
         <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
     </div>
     @if (User.HasAccess(Pages.Roles, PageAccess.Create)){
-        <a asp-action="Create" class="btn-accent">+ Create Role</a>
+        <a asp-action="Create" class="btn-accent">+ + Rol əlavə et</a>
     }
 </div>
 
@@ -27,10 +27,10 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Role Name</th>
-                        <th style="width: 50%;">Permissions</th>
-                        <th style="width: 20%;">Users</th>
-                        <th style="width: 15%;">Actions</th>
+                        <th style="width: 15%;">Rol Adı</th>
+                        <th style="width: 50%;">İcazələr</th>
+                        <th style="width: 20%;">İstifadəçilər</th>
+                        <th style="width: 15%;">Əməliyyatlar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +44,7 @@
                                     @foreach (var perm in role.Permissions.Where(p => p.Value > 0))
                                     {
                                         var page = (Pages)perm.Key;
-                                        var access = (PageAccess)perm.Value;
+                                        var access = (PermissionsInAzerbaijani)perm.Value;
                                         <div class="role-tag" style="margin-bottom: 4px;">
                                             @(page.ToString()) - @access.ToString()
                                         </div>
@@ -52,7 +52,7 @@
                                 }
                                 else
                                 {
-                                    <span style="color: var(--text-dim); font-size: 12px;">No permissions</span>
+                                    <span style="color: var(--text-dim); font-size: 12px;">İcazə yoxdur</span>
                                 }
                             </td>
                             <td>
@@ -73,7 +73,7 @@
                                     {
                                         if (role.Name != "SuperAdmin")
                                         {
-                                            <a asp-action="Update" asp-route-id="@role.Name" class="action-btn edit">Edit</a>
+                                            <a asp-action="Update" asp-route-id="@role.Name" class="action-btn edit">Redaktə et</a>
                                         }
                                     }
                                     @if (User.HasAccess(Pages.Roles, PageAccess.Delete))
@@ -81,9 +81,9 @@
                                         if (role.Name != "SuperAdmin" && role.Name != "User")
                                         {
                                             <form asp-action="Delete" asp-route-id="@role.Name" method="post" style="display: inline;"
-                                            onsubmit="return confirm('Delete this role?');">
+                                            onsubmit="return confirm('Bu rolu silmək istəyirsiniz?');">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="action-btn del">Delete</button>
+                                                <button type="submit" class="action-btn del">Sil</button>
                                             </form>
                                         }
                                     }

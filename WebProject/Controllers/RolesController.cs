@@ -36,13 +36,13 @@ public class RolesController(WebProjectDbContext _context) : Controller
 
         if (string.IsNullOrWhiteSpace(Name))
         {
-            ModelState.AddModelError(nameof(Name), "Role name is required");
+            ModelState.AddModelError(nameof(Name), "Rol adı zəruridir.");
             return View(new Role());
         }
 
         if (await _context.Roles.AnyAsync(r => r.Name.ToLower() == Name.ToLower(), ct))
         {
-            ModelState.AddModelError(nameof(Name), "This role already exists");
+            ModelState.AddModelError(nameof(Name), "Bu rol artıq mövcuddur.");
             return View(new Role());
         }
 
@@ -83,7 +83,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
         var role = await _context.Roles
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Name == id)
-            ?? throw new Exception($"Role not found: {id}");
+            ?? throw new Exception($"Bu ID ilə rol tapılmadı: {id}");
 
         return View(role);
     }
@@ -95,7 +95,7 @@ public class RolesController(WebProjectDbContext _context) : Controller
     {
         var role = await _context.Roles
             .FirstOrDefaultAsync(r => r.Name == id, ct)
-            ?? throw new Exception($"Role not found: {id}");
+            ?? throw new Exception($"Bu ID ilə rol tapılmadı: {id}");
 
         // Parse permissions from form data
         var permissions = new Dictionary<byte, int>();
@@ -129,10 +129,10 @@ public class RolesController(WebProjectDbContext _context) : Controller
         var role = await _context.Roles
             .Include(r => r.Users)
             .FirstOrDefaultAsync(r => r.Name == id, ct)
-            ?? throw new Exception($"Role not found: {id}");
+            ?? throw new Exception($"Bu ID ilə rol tapılmadı: {id}");
 
         if (role.Name == "SuperAdmin" || role.Name == "User")
-            return BadRequest("Cannot delete system roles");
+            return BadRequest("Sistem rollarını silmək olmaz.");
 
         foreach (var user in role.Users)
             user.RoleId = "User";

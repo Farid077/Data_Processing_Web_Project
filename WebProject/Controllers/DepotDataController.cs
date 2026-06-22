@@ -203,12 +203,12 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         }
         else
         {
-            var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
+            var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows", ct) ?? throw new Exception("Bloklanmış sətirlər siyahısı tapılmadı.");
 
             if (blockedRows.Value.Contains(id.ToString()))
-                return BadRequest("This row is blocked.");
+                return BadRequest("Bu sətir bloklanıb.");
 
-            var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+            var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns", ct) ?? throw new Exception("Bloklanmış sütunlar siyahısı tapılmadı.");
             ICollection<string> blockedColumnsList = blockedColumns.Value;
 
             // Only update fields that are NOT blocked
@@ -291,7 +291,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         //    return new ForbidResult();
 
         if (HttpContext.User.Identity?.IsAuthenticated == true)
-            data.ConfirmerId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("ClaimTypes NameIdentifier is not found");
+            data.ConfirmerId = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("İstifadəçi adı Claims tapılmadı.");
         else
             return RedirectToAction("Login", "Auth");
             //throw new Exception("Login to your Account");
@@ -306,7 +306,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     [HttpGet("blocked-columns")]
     public async Task<IActionResult> GetBlockedColumns()
     {
-        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Bloklanmış sütunlar siyahısı tapılmadı.");
 
         return Ok(blockedColumns.Value);
     }
@@ -319,7 +319,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         if (!User.HasAccess((Pages)depot, PageAccess.Block))
             return new ForbidResult();
 
-        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns") ?? throw new Exception("Blocked columns list is not found.");
+        var blockedColumns = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Columns", ct) ?? throw new Exception("Bloklanmış sütunlar siyahısı tapılmadı.");
 
         if (!blockedColumns.Value.Remove(column))
             blockedColumns.Value.Add(column);
@@ -334,7 +334,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
     public async Task<IActionResult> GetBlockedRows()
     {
         var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows")
-            ?? throw new Exception("Blocked rows list is not found.");
+            ?? throw new Exception("Bloklanmış sətirlər siyahısı tapılmadı.");
         return Ok(blockedRows.Value);
     }
 
@@ -346,7 +346,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         if (!User.HasAccess((Pages)depot, PageAccess.Block))
             return new ForbidResult();
 
-        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows") ?? throw new Exception("Blocked rows list is not found.");
+        var blockedRows = await _context.BlockLists.FirstOrDefaultAsync(x => x.Key == "Rows", ct) ?? throw new Exception("Bloklanmış sətirlər siyahısı tapılmadı.");
 
         if (!blockedRows.Value.Remove(id.ToString()))
             blockedRows.Value.Add(id.ToString());
@@ -374,10 +374,10 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
             return new ForbidResult();
 
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
-        if (list == null) return NotFound($"Option list '{key}' not found.");
+        if (list == null) return NotFound($"{key} seçim siyahısı tapılmadı.");
 
         value = value?.Trim() ?? "";
-        if (string.IsNullOrEmpty(value)) return BadRequest("Value cannot be empty.");
+        if (string.IsNullOrEmpty(value)) return BadRequest("Dəyər boş ola bilməz.");
 
         if (!list.Value.Contains(value))
         {
@@ -396,7 +396,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
             return new ForbidResult();
 
         var list = await _context.OptionLists.FirstOrDefaultAsync(o => o.Key == key, ct);
-        if (list == null) return NotFound($"Option list '{key}' not found.");
+        if (list == null) return NotFound($"{key} seçim siyahısı tapılmadı.");
 
         list.Value.Remove(value);
         await _context.SaveChangesAsync(ct);
@@ -412,10 +412,10 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
             return new ForbidResult();
 
         if (file == null || file.Length == 0)
-            return BadRequest("No file uploaded.");
+            return BadRequest("Heç bir fayl yüklənməyib.");
 
         if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-            return BadRequest("Only .xlsx files are supported.");
+            return BadRequest("Yalnız .xlsx faylları dəstəklənir.");
 
         ExcelPackage.License.SetNonCommercialPersonal("MyApp");
 
@@ -427,7 +427,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
         int depotNum = depot == 10 ? 1 : depot; // nulldursa, 1-cini gotursun.
         ExcelWorksheet sheet;
 
-        if (package.Workbook.Worksheets.Count() >= depotNum)
+        if (package.Workbook.Worksheets.Count >= depotNum)
         {
             sheet = package.Workbook.Worksheets[depotNum-1];
         }
@@ -438,7 +438,7 @@ public class DepotDataController(WebProjectDbContext _context) : ControllerBase
 
         int rows = sheet.Dimension?.Rows ?? 0;
 
-        if (rows < 2) return BadRequest("Excel file is empty or has no data rows.");
+        if (rows < 2) return BadRequest("Excel faylı boşdur və ya məlumat sətrləri yoxdur.");
 
         // Read header row to map column names (case-insensitive)
         var headers = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

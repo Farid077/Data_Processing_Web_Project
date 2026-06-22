@@ -1,4 +1,6 @@
+@using Newtonsoft.Json
 @model byte
+@* @using System.Text.Json *@
 
 @{
     ViewData["Title"] = ((Pages)Model).ToString();
@@ -14,7 +16,7 @@
         }
         <div class="depot-search-wrap">
             <span class="search-icon">⌕</span>
-            <input type="text" id="global-search" placeholder="Search all columns…" oninput="renderTable()">
+            <input type="text" id="global-search" placeholder="Bütün sütunlarda axtar…" oninput="renderTable()">
         </div>
         @* <form id="import-form" asp-action="Import" asp-controller="DepotData"
               asp-route-depot="@Model" method="post" enctype="multipart/form-data"
@@ -27,26 +29,26 @@
         </form> *@
 
         @if (User.HasAccess((Pages)Model, PageAccess.Import)){
-            <label class="btn-ghost" style="cursor:pointer" title="Import from Excel">
-                ⬆ Import Excel
+            <label class="btn-ghost" style="cursor:pointer" title="Excel-dən idxal et">
+                ⬆ Excel-dən idxal et
                 <input type="file" accept=".xlsx" style="display:none"
                        onchange="importExcel(this)">
             </label>
         }
 
         @if (User.HasAccess((Pages)Model, PageAccess.Export)){
-            <button class="btn-ghost" onclick="exportFiltered()">⬇ Export Excel</button>
+            <button class="btn-ghost" onclick="exportFiltered()">⬇ Excel formasında ixrac et</button>
         }
 
         @if (User.HasAccess((Pages)Model, PageAccess.Options)) {
-            <button class="btn-ghost" onclick="openOptionsManager()">⚙ Options</button>
+            <button class="btn-ghost" onclick="openOptionsManager()">⚙ Seçim variantları</button>
         }
 
         @if (User.HasAccess((Pages)Model, PageAccess.DeleteAll)) {
             <button onclick="deleteAll()" class="btn-ghost del">- Hər şeyi sil</button>
         }
 
-        <button class="btn-ghost" onclick="clearAllFilters()">Clear Filters</button>
+        <button class="btn-ghost" onclick="clearAllFilters()">Filtrləri Təmizlə</button>
 
         <span class="row-count" id="row-count"></span>
     </div>
@@ -69,10 +71,10 @@
 @section Scripts {
 <script>
 
-const canCreate = !"@(User.HasAccess((Pages)Model, PageAccess.Create))";
-const canUpdate = !"@(User.HasAccess((Pages)Model, PageAccess.Update))";
-const canDelete = !"@(User.HasAccess((Pages)Model, PageAccess.Delete))";
-const canBlock = !"@(User.HasAccess((Pages)Model, PageAccess.Block))";
+const canCreate = @Html.Raw(JsonConvert.SerializeObject(User.HasAccess((Pages)Model, PageAccess.Create)));
+const canUpdate = @Html.Raw(JsonConvert.SerializeObject(User.HasAccess((Pages)Model, PageAccess.Update)));
+const canBlock = @Html.Raw(JsonConvert.SerializeObject(User.HasAccess((Pages)Model, PageAccess.Block)));
+const canDelete = @Html.Raw(JsonConvert.SerializeObject(User.HasAccess((Pages)Model, PageAccess.Delete)));
 
 const TOKEN = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
@@ -582,9 +584,10 @@ function addNewRow() {
         const td = document.createElement('td');
         if (col.stickyLeft) td.classList.add('col-sticky-left');
 
-        if (col.readOnly) {
-            td.innerHTML = `<span style="color:var(--muted);font-size:11px">auto</span>`;
-        } else if (col.type === 'bool') {
+        // if (col.readOnly) {
+        //     td.innerHTML = `<span style="color:var(--muted);font-size:11px">auto</span>`;
+        // } 
+        if (col.type === 'bool') {
             td.innerHTML = `<input type="checkbox" data-key="${col.key}">`;
         } else if (col.type === 'date') {
             td.innerHTML = `<input type="date" data-key="${col.key}">`;

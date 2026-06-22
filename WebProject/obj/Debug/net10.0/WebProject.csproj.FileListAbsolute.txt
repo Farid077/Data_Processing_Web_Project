@@ -691,3 +691,5 @@ C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\SixLabors.Fonts.dll
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\System.IO.Packaging.dll
 C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\obj\Debug\net10.0\compressed\w5vimncr91-{0}-0c4q2n3nys-0c4q2n3nys.gz
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\HealthChecks.NpgSql.dll
+C:\Users\Farid\Desktop\Data_Processing_Web_Project\WebProject\bin\Debug\net10.0\HealthChecks.Redis.dll

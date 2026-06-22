@@ -31,7 +31,7 @@ public class AuthController(WebProjectDbContext _context, ISessionService _sessi
 
         if (user == null)
         {
-            ModelState.AddModelError("Username", "Username is not found!");
+            ModelState.AddModelError("Username", "İstifadəçi adı tapılmadı.");
             return View(vm);
         }
         string userId = user.Username;
@@ -40,7 +40,7 @@ public class AuthController(WebProjectDbContext _context, ISessionService _sessi
 
         if (result == PasswordVerificationResult.Failed)
         {
-            ModelState.AddModelError("Password", "Password is wrong!");
+            ModelState.AddModelError("Password", "Parol yanlışdır.");
             return View(vm);
         }
         
@@ -71,7 +71,7 @@ public class AuthController(WebProjectDbContext _context, ISessionService _sessi
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout(CancellationToken ct = default)
     {
-        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("ClaimTypes 'NameIdentifier' is not found");
+        string userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new Exception("İstifadəçi adı Claims tapılmadı.");
         await _sessionService.RevokeAsync(userId, ct);
         await HttpContext.SignOutAsync();
         return Redirect("Login");

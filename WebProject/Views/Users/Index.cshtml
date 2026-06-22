@@ -9,14 +9,14 @@
 <div class="overlay" id="deleteOverlay" onclick="closeDelete(event)">
     <div class="dialog">
         <div class="dialog-icon">⚠</div>
-        <h3>Delete this user?</h3>
-        <p>This will permanently remove <strong id="deleteTargetName"></strong> from the system. This action cannot be undone.</p>
+        <h3>Bu istifadəçini silmək istəyirsiniz?</h3>
+        <p>Bu, <strong id="deleteTargetName"></strong> sistemdən tamamilə siləcək. Bu əməliyyat geri qaytarıla bilməz.</p>
         <div class="dialog-btns">
-            <button class="btn-cancel" onclick="closeDelete()">Cancel</button>
+            <button class="btn-cancel" onclick="closeDelete()">Ləğv et</button>
             <form id="deleteForm" method="POST">
                 @Html.AntiForgeryToken()
                 @if (User.HasAccess(Pages.Users, PageAccess.Delete)){
-                    <button type="submit" class="btn-confirm-delete">Yes, Delete</button>
+                    <button type="submit" class="btn-confirm-delete">Bəli, sil</button>
                 }
             </form>
         </div>
@@ -36,14 +36,14 @@
 </div> *@
 
 <div class="section-header">
-    <div class="section-title">Users Management</div>
+    <div class="section-title">İstifadəçilərin İdarə Edilməsi</div>
     <div style="display: flex;">
-        <div class="stat-label">Total Users:</div>
+        <div class="stat-label">Ümumi İstifadəçi Sayı:</div>
         <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
     </div>
     @if (User.HasAccess(Pages.Users, PageAccess.Create))
     {
-        <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ New User</a>
+        <a style="text-decoration:none" asp-action="Create" class="btn-accent">+ Yeni İstifadəçi</a>
     }
 </div>
 
@@ -51,11 +51,11 @@
     <table>
         <thead>
             <tr>
-                <th>User</th>
-                <th>Role</th>
+                <th>İstifadəçi Adı</th>
+                <th>Rol</th>
                 <th>Status</th>
-                <th>Joined</th>
-                <th>Actions</th>
+                <th>Qoşulma tarixi</th>
+                <th>Əməliyyatlar</th>
             </tr>
         </thead>
         <tbody>
@@ -76,11 +76,11 @@
                     <td>
                         @if (user.IsActive)
                         {
-                            <span class="status-pill s-active">Active</span>
+                            <span class="status-pill s-active">Aktiv</span>
                         }
                         else
                         {
-                            <span class="status-pill s-inactive">Inactive</span>
+                            <span class="status-pill s-inactive">Qeyri-aktiv</span>
                         }
                     </td>
                     <td>@user.CreatedTime</td>
@@ -89,7 +89,7 @@
                         {
                             @if (User.HasAccess(Pages.Users, PageAccess.Update))
                             {
-                                <a asp-action="Update" asp-route-id="@user.Username" class="action-btn edit" style="text-decoration:none;">Edit</a>
+                                <a asp-action="Update" asp-route-id="@user.Username" class="action-btn edit" style="text-decoration:none;">Redaktə et</a>
                             }
 
                             @if (User.HasAccess(Pages.Users, PageAccess.Delete))
@@ -98,11 +98,11 @@
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="id" value="@user.Username" />
                                     <button class="action-btn del" type="button" onclick="openDelete('@user.Username', 'Users/Delete/@user.Username')">
-                                        Delete
+                                        Sil
                                     </button>
                                     @if (user.IsActive)
                                     {
-                                        <button class="action-btn revoke" type="submit" formaction="Users/RevokeSession/@user.Username">End Session</button>
+                                        <button class="action-btn revoke" type="submit" formaction="Users/RevokeSession/@user.Username">Sessiyanı sonlandır</button>
                                     }
                                 </form>
                             }

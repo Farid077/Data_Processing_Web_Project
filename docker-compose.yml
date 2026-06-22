@@ -1,0 +1,6 @@
+services:
+  webproject:
+    image: ${DOCKER_REGISTRY-}webproject
+    build:
+      context: .
+      dockerfile: WebProject/Dockerfile

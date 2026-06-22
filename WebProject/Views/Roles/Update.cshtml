@@ -6,7 +6,7 @@
 
 <div style="padding: 20px; max-width: 900px; margin: 0 auto;">
     <div class="topbar">
-        <h1 class="page-title">Edit Role: <span style="color: var(--accent);">@Model.Name</span></h1>
+        <h1 class="page-title">Rolu Redaktə Et: <span style="color: var(--accent);">@Model.Name</span></h1>
     </div>
 
     <form asp-action="Update" asp-route-id="@Model.Name" method="post">
@@ -14,20 +14,20 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Role Details</h3>
+                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Rol Məlumatları</h3>
             </div>
             <div class="form-body">
                 <div class="field">
-                    <label>Role Name</label>
+                    <label>Rol Adı</label>
                     <input type="text" value="@Model.Name" disabled style="background: var(--border); cursor: not-allowed;" />
-                    <small style="color: var(--text-dim); font-size: 11px;">Role names cannot be changed</small>
+                    <small style="color: var(--text-dim); font-size: 11px;">Rol adları dəyişdirilə bilməz</small>
                 </div>
             </div>
         </div>
 
         <div class="card" style="margin-top: 24px;">
             <div class="card-header">
-                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Permissions</h3>
+                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">İcazələr</h3>
             </div>
             <div class="form-body">
                 @{
@@ -54,7 +54,7 @@
                            name="perms_@((int)page)_@((int)access)" 
                            value="1" 
                            @(isChecked ? "checked" : "") />
-                                    @access
+                                    @((PermissionsInAzerbaijani)((int)access))
                                 </label>
                             }
                         </div>
@@ -64,9 +64,9 @@
         </div>
 
         <div class="card-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;">
-            <a asp-action="Index" class="btn-cancel">Cancel</a>
+            <a asp-action="Index" class="btn-cancel">Ləğv et</a>
             @if (User.HasAccess(Pages.Roles, PageAccess.Update)){
-                <button type="submit" class="btn-save">Save Changes</button>
+                <button type="submit" class="btn-save">Dəyişiklikləri Yadda Saxla</button>
             }
         </div>
     </form>

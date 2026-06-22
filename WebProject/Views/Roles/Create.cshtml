@@ -6,7 +6,7 @@
 
 <div style="padding: 20px; max-width: 900px; margin: 0 auto;">
     <div class="topbar">
-        <h1 class="page-title">Create New Role</h1>
+        <h1 class="page-title">Yeni Rol Yarat</h1>
     </div>
 
     <form asp-action="Create" method="post">
@@ -14,19 +14,19 @@
 
         <div class="card">
             <div class="card-header">
-                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Role Details</h3>
+                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Rol Məlumatları</h3>
             </div>
             <div class="form-body">
                 <div class="field">
-                    <label>Role Name *</label>
-                    <input type="text" name="Name" placeholder="e.g., Editor, Viewer" autofocus required />
+                    <label>Rol Adı *</label>
+                    <input type="text" name="Name" placeholder="məs. HR" autofocus required />
                 </div>
             </div>
         </div>
 
         <div class="card" style="margin-top: 24px;">
             <div class="card-header">
-                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">Permissions</h3>
+                <h3 style="margin: 0; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;">İcazələr</h3>
             </div>
             <div class="form-body">
                 @{
@@ -44,9 +44,9 @@
                             {
                                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
                                     <input type="checkbox" 
-                                   name="perms_@((int)page)_@((int)access)" 
+                                   name="perms_@((int)page)_@((int)access)"
                                    value="1" />
-                                    @access
+                                    @((PermissionsInAzerbaijani)((int)access))
                                 </label>
                             }
                         </div>
@@ -56,9 +56,9 @@
         </div>
 
         <div class="card-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px;">
-            <a asp-action="Index" class="btn-cancel">Cancel</a>
+            <a asp-action="Index" class="btn-cancel">Ləğv et</a>
             @if (User.HasAccess(Pages.Roles, PageAccess.Create)){
-                <button type="submit" class="btn-save">Create Role</button>
+                <button type="submit" class="btn-save">Rol Yarat</button>
             }
         </div>
     </form>

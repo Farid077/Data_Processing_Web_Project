@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Console — @ViewData["Title"]</title>
+    <title>@ViewData["Title"]</title>
     <!-- Apply saved theme immediately before render to prevent flash -->
     <script>
         document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';
@@ -13,19 +13,19 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-
     <aside id="sidebar">
         <div class="logo">
-            <div class="logo-mark">A</div>
-            <h1 class="logo-text">Admin Console</h1>
+            <div class="logo-mark">@(User.Identity?.Name?[0])</div>
+            <div class="logo-mark">@User.Identity?.Name?[0]</div>
+            <h1 class="logo-text">@User.Identity?.Name</h1>
         </div>
 
         <!-- nav scrolls independently -->
         <nav>
-            <div class="nav-label nav-label-text">Main</div>
+            <div class="nav-label nav-label-text">Əsas</div>
             <a asp-action="Index" asp-controller="Home"
-               class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" title="Dashboard">
-                <span class="icon">▦</span> <span class="nav-text">Dashboard</span>
+               class="@(ViewData["ActivePage"]?.ToString() == "Dashboard" ? "active" : "")" title="Panel">
+                <span class="icon">▦</span> <span class="nav-text">Panel</span>
             </a>
 
             @foreach (var page in Enum.GetValues<Pages>())
@@ -92,18 +92,18 @@
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" title="Logout">
-                    <span class="icon">◉</span> <span class="nav-text">Logout</span>
+                <span class="icon">◉</span> <span class="nav-text">Çıxış</span>
                 </button>
             </form>
         </nav>
 
         <!-- Always visible at bottom — outside <nav> so they never scroll away -->
-        <button class="sidebar-theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark theme">
+    <button class="sidebar-theme-btn" id="theme-btn" onclick="toggleTheme()" title="Açıq / qaranlıq rejimi dəyiş">
             <span id="theme-icon">☀</span>
-            <span class="nav-text" id="theme-label">Light mode</span>
+            <span class="nav-text" id="theme-label">Açıq rejim</span>
         </button>
 
-        <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Collapse sidebar">
+        <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()" title="Yan paneli yığ">
             <span id="toggle-icon">◀</span>
         </button>
     </aside>
@@ -137,7 +137,7 @@
             const isLight = html.dataset.theme === 'light';
             html.dataset.theme     = isLight ? 'dark' : 'light';
             themeIcon.textContent  = isLight ? '☀' : '☾';
-            themeLabel.textContent = isLight ? 'Light mode' : 'Dark mode';
+            themeLabel.textContent = isLight ? 'Açıq rejim' : 'Qaranlıq rejim';
             localStorage.setItem('theme', html.dataset.theme);
         }
 
@@ -145,7 +145,7 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         if (savedTheme === 'light') {
             themeIcon.textContent  = '☾';
-            themeLabel.textContent = 'Dark mode';
+            themeLabel.textContent = 'Qaranlıq rejim';
         }
     </script>
 
