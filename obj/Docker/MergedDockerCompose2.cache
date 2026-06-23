@@ -1,0 +1,103 @@
+name: dockercompose1265341672933104691
+services:
+  products.cache:
+    command:
+      - redis-server
+      - --requirepass
+    image: redis:8-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 6379
+        published: "6379"
+        protocol: tcp
+    restart: always
+  products.database:
+    container_name: products.database
+    environment:
+      POSTGRES_DB: pass
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: pass
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U app -d appdb
+      timeout: 5s
+      interval: 10s
+      retries: 5
+      start_period: 10s
+    image: postgres:18-alpine
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: C:\Users\Farid\Desktop\Data_Processing_Web_Project\.containers\database
+        target: /var/lib/postgresql
+        bind: {}
+  webproject:
+    build:
+      context: C:\Users\Farid\Desktop\Data_Processing_Web_Project
+      dockerfile: WebProject/Dockerfile
+    depends_on:
+      products.cache:
+        condition: service_started
+        required: true
+      products.database:
+        condition: service_healthy
+        required: true
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ASPNETCORE_HTTPS_PORTS: "8081"
+      ConnectionStrings__Cache: products.cache:6379,password=
+      ConnectionStrings__Database: Host=products.database;Port=5432;Database=pass;Username=pass;Password=pass
+    image: webproject
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8080
+        published: "5000"
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        published: "5001"
+        protocol: tcp
+      - mode: ingress
+        target: 8080
+        protocol: tcp
+      - mode: ingress
+        target: 8081
+        protocol: tcp
+    restart: always
+    volumes:
+      - type: bind
+        source: C:\Users\Farid\AppData\Roaming/Microsoft/UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\Farid\AppData\Roaming/Microsoft/UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\Farid\AppData\Roaming/ASP.NET/Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind: {}
+      - type: bind
+        source: C:\Users\Farid\AppData\Roaming/ASP.NET/Https
+        target: /root/.aspnet/https
+        read_only: true
+        bind: {}
+networks:
+  default:
+    name: dockercompose1265341672933104691_default
+    driver: bridge

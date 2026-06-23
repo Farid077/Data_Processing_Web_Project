@@ -4,3 +4,50 @@ services:
     build:
       context: .
       dockerfile: WebProject/Dockerfile
+    ports:
+      - 5000:8080
+      - 5001:8081
+    environment:
+      - ConnectionStrings__Database=Host=products.database;Port=5432;Database=${DB_DATABASE};Username=${DB_USER};Password=${DB_PASSWORD}
+      - ConnectionStrings__Cache=products.cache:6379,password=${CACHE_PASSWORD}
+    depends_on:
+      products.database:
+        condition: service_healthy
+      products.cache:
+        condition: service_started
+    restart: always
+    networks:
+      - "default"
+
+  products.database:
+    image: postgres:18-alpine
+    container_name: products.database
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./.containers/database:/var/lib/postgresql
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - "default"
+
+  products.cache:
+    image: redis:8-alpine
+    command: redis-server --requirepass ${CACHE_PASSWORD}
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - "default"
+
+networks:
+  default:
+    driver: bridge
