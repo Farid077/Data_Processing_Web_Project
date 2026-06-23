@@ -1,53 +1,93 @@
 services:
-  webproject:
-    image: ${DOCKER_REGISTRY-}webproject
-    build:
-      context: .
-      dockerfile: WebProject/Dockerfile
-    ports:
-      - 5000:8080
-      - 5001:8081
-    environment:
-      - ConnectionStrings__Database=Host=products.database;Port=5432;Database=${DB_DATABASE};Username=${DB_USER};Password=${DB_PASSWORD}
-      - ConnectionStrings__Cache=products.cache:6379,password=${CACHE_PASSWORD}
-    depends_on:
-      products.database:
-        condition: service_healthy
-      products.cache:
-        condition: service_started
-    restart: always
-    networks:
-      - "default"
 
-  products.database:
-    image: postgres:18-alpine
-    container_name: products.database
+  postgres:
+    image: postgres:18.4
+    container_name: data_processing_postgre
+    restart: always
     environment:
-      - POSTGRES_DB=${DB_DATABASE}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    volumes:
-      - ./.containers/database:/var/lib/postgresql
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - 5432:5432
+      - "5432:5432"
+    volumes:
+      - data_processing_postgre:/var/lib/postgresql
+    networks:
+      - webproject_net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    networks:
-      - "default"
 
-  products.cache:
+  pgadmin:
+    image: dpage/pgadmin4:9.16
+    container_name: data_processing_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    networks:
+      - webproject_net
+
+  redis:
     image: redis:8-alpine
-    command: redis-server --requirepass ${CACHE_PASSWORD}
+    container_name: data_processing_redis
     restart: always
     ports:
-      - 6379:6379
+      - "6379:6379"
+    volumes:
+      - data_processing_redis:/data
+    command: redis-server --appendonly yes
     networks:
-      - "default"
+      - webproject_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redisinsight:
+    image: redis/redisinsight:3.6.0
+    container_name: data_processing_redisinsight
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
+    networks:
+      - webproject_net
+
+  webproject:
+    build:
+      context: .
+      dockerfile: WebProject/Dockerfile
+    container_name: webproject_app
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__PostgreSql: "Host=postgres;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+      ConnectionStrings__Redis: "redis:6379"
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - webproject_net
+
+volumes:
+  data_processing_postgre:
+  data_processing_redis:
 
 networks:
-  default:
+  webproject_net:
     driver: bridge

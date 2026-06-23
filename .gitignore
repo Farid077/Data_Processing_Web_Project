@@ -1,0 +1,38 @@
+# Build output
+bin/
+obj/
+.vs/
+
+# User files
+*.user
+*.suo
+*.userosscache
+*.sln.docstyles
+*.sln.docstates
+
+# Secrets and environment config
+appsettings.Production.json
+.env
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# NuGet
+.nuget/
+
+# Test results
+TestResults/
+
+# Temporary files
+*.tmp
+*.temp
