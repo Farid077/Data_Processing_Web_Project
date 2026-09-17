@@ -941,3 +941,10 @@ td { padding: 14px 20px; font-size: 13px; color: var(--text); vertical-align: mi
 }
 
 .opt-add-btn:hover { background: rgba(200,255,62,.2); border-color: var(--accent); }
+
+
+#row-edit-modal input:focus,
+#row-edit-modal select:focus {
+    border-color: rgba(200,255,62,.45) !important;
+    box-shadow: 0 0 0 2px rgba(200,255,62,.07);
+}

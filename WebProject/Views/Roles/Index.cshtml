@@ -11,7 +11,7 @@
         <div style="margin-left: 15px;" class="stat-label">@Model.Count()</div>
     </div>
     @if (User.HasAccess(Pages.Roles, PageAccess.Create)){
-        <a asp-action="Create" class="btn-accent">+ + Rol əlavə et</a>
+        <a asp-action="Create" class="btn-accent" style="text-decoration:none">+ Rol əlavə et</a>
     }
 </div>
 
@@ -68,12 +68,12 @@
                                 }
                             </td>
                             <td>
-                                <div style="display: flex; gap: 8px;">
+                                <div style="display: flex; gap: 6px;">
                                     @if (User.HasAccess(Pages.Roles, PageAccess.Update))
                                     {
                                         if (role.Name != "SuperAdmin")
                                         {
-                                            <a asp-action="Update" asp-route-id="@role.Name" class="action-btn edit">Redaktə et</a>
+                                    <a asp-action="Update" asp-route-id="@role.Name" class="action-btn edit" style="text-decoration:none">Redaktə et</a>
                                         }
                                     }
                                     @if (User.HasAccess(Pages.Roles, PageAccess.Delete))
